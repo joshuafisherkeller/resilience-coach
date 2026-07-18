@@ -1,0 +1,20 @@
+{
+  "name": "resilience-coach-build-week",
+  "interface": {
+    "displayName": "Resilience Coach Build Week"
+  },
+  "plugins": [
+    {
+      "name": "resilience-coach",
+      "source": {
+        "source": "local",
+        "path": "./plugins/resilience-coach"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Education"
+    }
+  ]
+}
