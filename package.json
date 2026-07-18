@@ -1,0 +1,35 @@
+{
+  "name": "resilience-coach",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A synthetic-data SEL practice companion built for OpenAI Build Week 2026.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit && vitest run",
+    "demo:reset": "tsx scripts/reset-demo.ts",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "1.7.4",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@supabase/supabase-js": "2.110.7",
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "openai": "6.48.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "26.1.1",
+    "tsx": "4.23.1",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
+  }
+}

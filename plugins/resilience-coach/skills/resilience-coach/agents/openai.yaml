@@ -1,0 +1,4 @@
+interface:
+  display_name: "Resilience Coach"
+  short_description: "Practice child-safe resilience coaching"
+  default_prompt: "Use $resilience-coach to start a synthetic SEL practice session."
