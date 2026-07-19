@@ -3,7 +3,7 @@
   "framework": "express",
   "regions": ["iad1"],
   "functions": {
-    "src/index.ts": {
+    "src/server.ts": {
       "maxDuration": 60,
       "includeFiles": "{resilience_coach_system_prompt.md,web/**}"
     }

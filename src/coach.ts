@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { OpenAI } from "openai";
 import type { Responses } from "openai/resources/responses/responses";
 import { z } from "zod";
 import type { AppConfig } from "./config.js";

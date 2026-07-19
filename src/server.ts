@@ -235,6 +235,10 @@ export function createConfiguredServer(config = loadConfig()) {
   return createServerApp(config, repository, coach);
 }
 
+const configuredApp = createConfiguredServer();
+
+export default configuredApp;
+
 const isMain =
   process.argv[1] &&
   fileURLToPath(import.meta.url).toLowerCase() ===
@@ -242,8 +246,7 @@ const isMain =
 
 if (isMain) {
   const config = loadConfig();
-  const app = createConfiguredServer(config);
-  app.listen(config.port, config.host, () => {
+  configuredApp.listen(config.port, config.host, () => {
     console.log(
       `Resilience Coach listening at ${config.publicBaseUrl} (MCP: /mcp)`,
     );
