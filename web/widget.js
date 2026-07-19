@@ -62,7 +62,7 @@
     const icon = document.createElement("div");
     icon.className = "grown-up-icon";
     icon.setAttribute("aria-hidden", "true");
-    icon.textContent = "♥";
+    icon.textContent = "\u2665";
 
     const heading = document.createElement("h1");
     heading.textContent = "Let's find a grown-up together";
@@ -76,7 +76,7 @@
 
     panel.append(icon, heading, message, note);
     shell.appendChild(panel);
-    document.title = "Find a grown-up · Resilience Coach";
+    document.title = "Find a grown-up \u00b7 Resilience Coach";
   }
 
   function toolMeta(result) {

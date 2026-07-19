@@ -86,13 +86,13 @@ function landingPage(publicBaseUrl: string): string {
   const origin = publicBaseUrl.replace(/"/g, "&quot;");
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Resilience Coach · Demo</title>
+<title>Resilience Coach &middot; Demo</title>
 <style>body{margin:0;background:#fffaf0;color:#172a27;font:18px/1.55 system-ui,sans-serif}main{width:min(760px,calc(100% - 36px));margin:48px auto}h1{font-size:clamp(38px,8vw,66px);line-height:1.05;margin-bottom:12px}.note{padding:16px;border:2px solid #8f6d1e;border-radius:14px;background:#fff3cf}.profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:28px 0}.profiles a{display:block;padding:20px;border-radius:16px;background:#1c6e63;color:white;font-weight:800;text-decoration:none;box-shadow:0 4px 0 #124a43}.small{font-size:15px;color:#49645f}code{font-size:15px}</style></head>
-<body><main><p class="small">OPENAI BUILD WEEK 2026 · EDUCATION</p><h1>Resilience Coach</h1>
-<p>A short social-emotional learning practice companion for ages 6–8, designed for use with an adult nearby.</p>
-<div class="note"><strong>Synthetic demo only.</strong> No real children’s names, accounts, or personal data belong in this app. This is a practice aid, not therapy or emergency support.</div>
+<body><main><p class="small">OPENAI BUILD WEEK 2026 &middot; EDUCATION</p><h1>Resilience Coach</h1>
+<p>A short social-emotional learning practice companion for ages 6&ndash;8, designed for use with an adult nearby.</p>
+<div class="note"><strong>Synthetic demo only.</strong> No real children&rsquo;s names, accounts, or personal data belong in this app. This is a practice aid, not therapy or emergency support.</div>
 <div class="profiles"><a href="${origin}/demo/demo-sharing">Sharing demo</a><a href="${origin}/demo/demo-mistakes">Mistakes demo</a><a href="${origin}/demo/demo-change">Change demo</a></div>
-<p class="small">MCP endpoint: <code>${origin}/mcp</code> · Health: <code>${origin}/health</code></p></main></body></html>`;
+<p class="small">MCP endpoint: <code>${origin}/mcp</code> &middot; Health: <code>${origin}/health</code></p></main></body></html>`;
 }
 
 export function createServerApp(

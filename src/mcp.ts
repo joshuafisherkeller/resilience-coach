@@ -99,7 +99,7 @@ export function createResilienceMcpServer(
       },
       _meta: {
         ui: { resourceUri: WIDGET_URI, visibility: ["model", "app"] },
-        "openai/toolInvocation/invoking": "Remembering what helps…",
+        "openai/toolInvocation/invoking": "Remembering what helps...",
         "openai/toolInvocation/invoked": "Ready to practice",
       },
     },
@@ -153,7 +153,7 @@ export function createResilienceMcpServer(
       },
       _meta: {
         ui: { resourceUri: WIDGET_URI, visibility: ["model", "app"] },
-        "openai/toolInvocation/invoking": "Saving what helped…",
+        "openai/toolInvocation/invoking": "Saving what helped...",
         "openai/toolInvocation/invoked": "Practice saved",
       },
     },
@@ -201,7 +201,7 @@ export function createResilienceMcpServer(
       },
       _meta: {
         ui: { resourceUri: WIDGET_URI, visibility: ["model", "app"] },
-        "openai/toolInvocation/invoking": "Finding a grown-up…",
+        "openai/toolInvocation/invoking": "Finding a grown-up...",
         "openai/toolInvocation/invoked": "Adult handoff recorded",
       },
     },

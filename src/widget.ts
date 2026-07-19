@@ -42,7 +42,7 @@ export function buildWidgetHtml(
       </header>
 
       <div class="demo-note" role="note">
-        Synthetic demo only · Use with a grown-up nearby
+        Synthetic demo only &middot; Use with a grown-up nearby
       </div>
 
       <section id="conversation" class="conversation" aria-live="polite">
