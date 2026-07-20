@@ -30,6 +30,18 @@ The child can use two or three tappable choices, type a few words, say “I don'
 know,” ask for simpler words, try a breath/movement/quiet/grown-up tool, or stop
 at any time. The session ends with a visual **My next-time plan** card.
 
+The five support selections are functional modes inside that shared loop:
+
+- **Clear choices** always displays exactly two model choices.
+- **Pictures + words** pairs starter and model choices with inline visual cues.
+- **Move my body** provides four bounded movements and a 20-second timer.
+- **Quiet pause** provides silent 20- or 40-second pauses with no audio by
+  default.
+- **Grown-up help** provides alternating adult and child script cards.
+
+Support modes can be changed during practice without restarting or losing the
+current conversation.
+
 The **Grown-up view** contains only:
 
 - skills practiced;
@@ -68,9 +80,11 @@ short-lived conversation history remains only in server memory and expires.
 The supplied [`resilience_coach_system_prompt.md`](./resilience_coach_system_prompt.md)
 is preserved byte-for-byte as the Build Week audit artifact. The runtime loads
 it together with the versioned
-[`resilience_coach_product_addendum_v2.md`](./resilience_coach_product_addendum_v2.md),
-which adds the bounded loop, AI transparency, accessibility behavior, neutral
-memory format, and obvious ending without silently rewriting the original.
+[`resilience_coach_product_addendum_v3.md`](./resilience_coach_product_addendum_v3.md),
+which adds the bounded loop, AI transparency, deterministic support-mode
+contracts, neutral memory format, and obvious ending without silently
+rewriting the original. The v2 addendum remains in the repository as version
+history.
 
 ## Exact MCP surface
 
@@ -250,8 +264,7 @@ trail. The original prompt SHA-256 remains
 ### Required Codex feedback record
 
 - Primary build task ID: `019f771b-97a6-7f21-a34b-59a904d7ae84`
-- `/feedback` Session ID: **PENDING—run `/feedback` in this primary build task
-  and replace this line before submitting.**
+- `/feedback` Session ID: `019f771b-97a6-7f21-a34b-59a904d7ae84`
 
 ## Known limits
 

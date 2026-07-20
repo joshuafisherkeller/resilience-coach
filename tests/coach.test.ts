@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   ResilienceCoach,
   extractChoices,
+  supportModeInstruction,
   type ModelGateway,
 } from "../src/coach.js";
 import { type AppConfig } from "../src/config.js";
@@ -210,5 +211,23 @@ describe("coach route orchestration", () => {
     expect(
       extractChoices("Take one slow breath, or shake your hands out?"),
     ).toEqual(["Take one slow breath", "shake your hands out"]);
+  });
+
+  it("gives each support mode a concrete model contract", () => {
+    expect(supportModeInstruction("two clear choices")).toContain(
+      "exactly two",
+    );
+    expect(supportModeInstruction("pictures and words")).toContain(
+      "paired with simple UI pictures",
+    );
+    expect(supportModeInstruction("movement break")).toContain(
+      "pressing palms together",
+    );
+    expect(supportModeInstruction("quiet pause")).toContain(
+      "never pressure the child to speak",
+    );
+    expect(supportModeInstruction("grown-up help")).toContain(
+      "grown-up and child as a team",
+    );
   });
 });
