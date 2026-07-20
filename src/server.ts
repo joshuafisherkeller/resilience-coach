@@ -23,7 +23,7 @@ const coachPromptPath = resolve(
 );
 const productAddendumPath = resolve(
   process.cwd(),
-  "resilience_coach_product_addendum_v2.md",
+  "resilience_coach_product_addendum_v3.md",
 );
 const demoProfileIds = new Set([
   "demo-sharing",

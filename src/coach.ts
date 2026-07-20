@@ -27,6 +27,25 @@ const supportPreferenceSchema = z.enum([
   "grown-up help",
 ]);
 
+export type SupportPreference = z.infer<typeof supportPreferenceSchema>;
+
+export function supportModeInstruction(
+  preference: SupportPreference,
+): string {
+  switch (preference) {
+    case "two clear choices":
+      return "Support-mode contract: when a choice helps, return exactly two concrete, genuinely different choices. Use plain literal words and keep each choice short.";
+    case "pictures and words":
+      return "Support-mode contract: use short literal labels that can be paired with simple UI pictures. Keep the words understandable without the picture, and do not rely on emoji or symbols alone.";
+    case "movement break":
+      return "Support-mode contract: if movement fits, use only a gentle hand shake, reaching up then slowly lowering, pressing palms together, or marching slowly in place. Say to stop if uncomfortable, keep the grown-up nearby, and check the body afterward.";
+    case "quiet pause":
+      return "Support-mode contract: use very few calm words, allow wait time, and never pressure the child to speak. A silent 20- or 40-second UI pause may happen before the next check-in.";
+    case "grown-up help":
+      return "Support-mode contract: address the grown-up and child as a team. Include one short action the grown-up can say or do, and return no more than two child choices.";
+  }
+}
+
 const coachRequestSchema = z.object({
   child_id: childIdSchema,
   session_id: z.string().min(8).max(100),
@@ -402,7 +421,7 @@ export class ResilienceCoach {
     const profileContext = session.profileLoadedByModel
       ? `The active synthetic profile was loaded at session start. Starter contexts: ${session.profile.recurring_struggles.join(", ") || "none"}. Previously helpful grounding strategy: ${session.profile.preferred_grounding_strategy ?? "none"}. Skills practiced: ${session.profile.practiced_strategies.join(", ") || "none yet"}. Last next-time plan: ${session.profile.last_next_time_plan ?? "none yet"}. Do not announce this memory or repeat the profile ID to the child.`
       : `The active synthetic child_id is ${session.childId}. Call get_child_profile before coaching. Server-side bounded practice memory: skills practiced ${session.profile.practiced_strategies.join(", ") || "none yet"}; support preference ${session.profile.support_preference ?? "none yet"}; last next-time plan ${session.profile.last_next_time_plan ?? "none yet"}. Do not repeat the profile ID or announce this memory to the child.`;
-    const turnContext = `This is child turn ${session.turnCount} of at most ${MAX_CHILD_TURNS}. The child's selected support preference is ${request.support_preference}. ${shouldEnd ? "Close the practice now, make one short if-then next-time plan, call update_child_profile, and return a warm ending with no choices." : "Continue one step of Notice, Name, Choose, Try, Check, Switch or Share. Offer two or three UI choices when a choice would help."}`;
+    const turnContext = `This is child turn ${session.turnCount} of at most ${MAX_CHILD_TURNS}. The child's selected support preference is ${request.support_preference}. ${supportModeInstruction(request.support_preference)} ${shouldEnd ? "Close the practice now, make one short if-then next-time plan, call update_child_profile, and return a warm ending with no choices." : "Continue one step of Notice, Name, Choose, Try, Check, Switch or Share. Offer UI choices when a choice would help, following the selected support-mode contract."}`;
 
     const input: Responses.ResponseInputItem[] = [
       { role: "developer", content: `${profileContext}\n${turnContext}` },
