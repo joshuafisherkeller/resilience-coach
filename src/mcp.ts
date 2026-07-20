@@ -37,10 +37,10 @@ export function createResilienceMcpServer(
 ): McpServer {
   const handlers = new CoachToolHandlers(repository);
   const server = new McpServer(
-    { name: "resilience-coach", version: "0.1.0" },
+    { name: "resilience-coach", version: "0.2.0" },
     {
       instructions:
-        "Use synthetic demo profiles only. At the start of a child practice session, call get_child_profile once. At the end, call update_child_profile once with a brief non-clinical insight. If any physical danger, abuse, neglect, or self-harm appears, immediately call trigger_safety_handoff and stop the conversation. Never put raw crisis text in tool arguments or stored data.",
+        "Use synthetic demo profiles only. Guide one adult-supported, six-turn-or-shorter practice loop: Notice, Name, Choose, Try, Check, then Switch or Share. At the start call get_child_profile once. At the end call update_child_profile once with a neutral summary of skills practiced, a next-time plan, and support preference. If any physical danger, abuse, neglect, or self-harm appears, immediately call trigger_safety_handoff and stop. Never put transcripts, diagnoses, PII, or raw crisis text in tool arguments or stored data.",
     },
   );
 
@@ -61,7 +61,7 @@ export function createResilienceMcpServer(
     WIDGET_URI,
     {
       description:
-        "Warm, high-contrast practice UI with large choices and a locked safety screen.",
+        "Adult-guided practice UI with large choices, accessibility controls, a next-time plan, a transcript-free grown-up view, and a locked safety screen.",
       _meta: resourceMeta,
     },
     async () => ({
@@ -130,7 +130,7 @@ export function createResilienceMcpServer(
     {
       title: "Save a brief practice insight",
       description:
-        "At session end, save one short, non-clinical insight to the synthetic demo profile. The server merges simple patterns, increments session_count, and retains at most five insight rows.",
+        "At session end, save one short, neutral, non-clinical practice summary to the synthetic demo profile. The server derives bounded skills, a next-time plan, and a support preference, increments session_count, and retains at most five rows.",
       inputSchema: {
         child_id: z.string().describe(childIdDescription),
         insight: z
@@ -138,7 +138,7 @@ export function createResilienceMcpServer(
           .min(1)
           .max(300)
           .describe(
-            'Brief and non-clinical, for example: "Struggles with sharing; responded well to breathing exercises".',
+            'Brief and non-clinical, for example: "Practiced: one slow breath; Next-time plan: When waiting feels hard, I will take one slow breath; Support preference: two clear choices".',
           ),
       },
       outputSchema: {

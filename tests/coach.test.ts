@@ -64,7 +64,7 @@ class ScriptedModel implements ModelGateway {
             arguments: JSON.stringify({
               child_id: activeChild,
               insight:
-                "Struggles with sharing; responded well to one slow belly breath",
+                "Practiced: one slow belly breath; Next-time plan: When sharing feels hard, I will take one slow breath; Support preference: two clear choices",
             }),
             status: "completed",
           },
@@ -74,8 +74,14 @@ class ScriptedModel implements ModelGateway {
     }
     return response({
       output: [],
-      output_text:
-        "That can feel frustrating. Take one slow breath, or shake your hands out?",
+      output_text: JSON.stringify({
+        message: "That can feel frustrating. What should we try?",
+        choices: [
+          "Take one slow breath",
+          "Shake your hands out",
+          "Ask a grown-up",
+        ],
+      }),
     });
   }
 }
@@ -100,7 +106,8 @@ describe("coach route orchestration", () => {
       message: "Someone would not share with me.",
     });
     expect(first.locked).toBe(false);
-    expect(first.choices).toHaveLength(2);
+    expect(first.choices).toHaveLength(3);
+    expect(first.turn_count).toBe(1);
     expect(model.calls[0]?.tool_choice).toEqual({
       type: "function",
       name: "get_child_profile",
@@ -111,6 +118,11 @@ describe("coach route orchestration", () => {
         (call) => call.prompt_cache_options?.mode === "explicit",
       ),
     ).toBe(true);
+    expect(
+      model.calls.every(
+        (call) => call.text?.format?.type === "json_schema",
+      ),
+    ).toBe(true);
 
     const ended = await coach.reply({
       child_id: "demo-sharing",
@@ -119,7 +131,65 @@ describe("coach route orchestration", () => {
       end_session: true,
     });
     expect(ended.ended).toBe(true);
+    expect(ended.summary).toMatchObject({
+      practiced_strategies: ["one slow belly breath"],
+      support_preference: "two clear choices",
+      next_time_plan:
+        "When sharing feels hard, I will take one slow breath",
+    });
     expect((await repository.getProfile("demo-sharing"))?.session_count).toBe(1);
+  });
+
+  it("ends automatically at the six-turn practice ceiling", async () => {
+    const repository = new MemoryProfileRepository();
+    const model = new ScriptedModel();
+    const coach = new ResilienceCoach(repository, prompt, config, model);
+    let result;
+    for (let turn = 1; turn <= 6; turn += 1) {
+      result = await coach.reply({
+        child_id: "demo-sharing",
+        session_id: "session-bounded",
+        message: `Practice turn ${turn}`,
+      });
+    }
+    expect(result?.ended).toBe(true);
+    expect(result?.turn_count).toBe(6);
+    expect(result?.choices).toEqual([]);
+    expect((await repository.getProfile("demo-sharing"))?.session_count).toBe(1);
+  });
+
+  it("keeps model tools bound to the server-selected synthetic profile", async () => {
+    const repository = new MemoryProfileRepository();
+    const model = new ScriptedModel();
+    const coach = new ResilienceCoach(repository, prompt, config, model);
+
+    await coach.reply({
+      child_id: "demo-mistakes",
+      session_id: "session-profile-binding",
+      message: "I made a mistake and felt upset.",
+    });
+    const ended = await coach.reply({
+      child_id: "demo-mistakes",
+      session_id: "session-profile-binding",
+      message: "I am ready to stop for now.",
+      end_session: true,
+    });
+
+    expect(ended.ended).toBe(true);
+    expect((await repository.getProfile("demo-mistakes"))?.session_count).toBe(1);
+    expect((await repository.getProfile("demo-sharing"))?.session_count).toBe(0);
+
+    for (const call of model.calls) {
+      const tools = (call.tools ?? []) as Responses.FunctionTool[];
+      for (const tool of tools) {
+        const childId = (
+          tool.parameters as {
+            properties?: { child_id?: { enum?: string[] } };
+          }
+        ).properties?.child_id;
+        expect(childId?.enum).toEqual(["demo-mistakes"]);
+      }
+    }
   });
 
   it("locks before any model call when deterministic safety rules match", async () => {

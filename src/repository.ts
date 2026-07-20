@@ -12,6 +12,9 @@ const syntheticSeeds: ChildProfileRecord[] = [
     child_id: "demo-sharing",
     recurring_struggles: ["sharing and taking turns"],
     preferred_grounding_strategy: "one slow belly breath",
+    practiced_strategies: [],
+    support_preference: "two clear choices",
+    last_next_time_plan: null,
     session_count: 0,
     locked: false,
     locked_at: null,
@@ -21,6 +24,9 @@ const syntheticSeeds: ChildProfileRecord[] = [
     child_id: "demo-mistakes",
     recurring_struggles: ["making mistakes", "wanting to give up"],
     preferred_grounding_strategy: "shake hands out",
+    practiced_strategies: [],
+    support_preference: "two clear choices",
+    last_next_time_plan: null,
     session_count: 0,
     locked: false,
     locked_at: null,
@@ -30,6 +36,9 @@ const syntheticSeeds: ChildProfileRecord[] = [
     child_id: "demo-change",
     recurring_struggles: ["unexpected changes"],
     preferred_grounding_strategy: "name five things you can see",
+    practiced_strategies: [],
+    support_preference: "two clear choices",
+    last_next_time_plan: null,
     session_count: 0,
     locked: false,
     locked_at: null,
@@ -38,7 +47,11 @@ const syntheticSeeds: ChildProfileRecord[] = [
 ];
 
 function copyProfile(profile: ChildProfileRecord): ChildProfileRecord {
-  return { ...profile, recurring_struggles: [...profile.recurring_struggles] };
+  return {
+    ...profile,
+    recurring_struggles: [...profile.recurring_struggles],
+    practiced_strategies: [...profile.practiced_strategies],
+  };
 }
 
 function rowObject(value: unknown): Record<string, unknown> {
@@ -63,6 +76,17 @@ function normalizeProfile(value: unknown): ChildProfileRecord {
       row.preferred_grounding_strategy === null
         ? null
         : String(row.preferred_grounding_strategy),
+    practiced_strategies: Array.isArray(row.practiced_strategies)
+      ? row.practiced_strategies.map(String)
+      : [],
+    support_preference:
+      row.support_preference === null || row.support_preference === undefined
+        ? null
+        : String(row.support_preference),
+    last_next_time_plan:
+      row.last_next_time_plan === null || row.last_next_time_plan === undefined
+        ? null
+        : String(row.last_next_time_plan),
     session_count: Number(row.session_count),
     locked: Boolean(row.locked),
     locked_at: row.locked_at === null ? null : String(row.locked_at),
@@ -92,7 +116,7 @@ export class SupabaseProfileRepository implements ProfileRepository {
         detectSessionInUrl: false,
         persistSession: false,
       },
-      global: { headers: { "X-Client-Info": "resilience-coach/0.1.0" } },
+      global: { headers: { "X-Client-Info": "resilience-coach/0.2.0" } },
     });
   }
 
@@ -100,7 +124,7 @@ export class SupabaseProfileRepository implements ProfileRepository {
     const { data, error } = await this.client
       .from("child_profiles")
       .select(
-        "child_id, recurring_struggles, preferred_grounding_strategy, session_count, locked, locked_at, is_synthetic",
+        "child_id, recurring_struggles, preferred_grounding_strategy, practiced_strategies, support_preference, last_next_time_plan, session_count, locked, locked_at, is_synthetic",
       )
       .eq("child_id", childId)
       .maybeSingle();
@@ -120,6 +144,9 @@ export class SupabaseProfileRepository implements ProfileRepository {
         p_recurring_struggle: parsed.recurringStruggle,
         p_preferred_grounding_strategy:
           parsed.preferredGroundingStrategy,
+        p_practiced_strategies: parsed.practicedStrategies,
+        p_support_preference: parsed.supportPreference,
+        p_next_time_plan: parsed.nextTimePlan,
       },
     );
     if (error) throw new Error(`Could not update child profile: ${error.message}`);
@@ -210,6 +237,16 @@ export class MemoryProfileRepository implements ProfileRepository {
       preferred_grounding_strategy:
         parsed.preferredGroundingStrategy ??
         profile.preferred_grounding_strategy,
+      practiced_strategies: [
+        ...profile.practiced_strategies,
+        ...parsed.practicedStrategies.filter(
+          (strategy) => !profile.practiced_strategies.includes(strategy),
+        ),
+      ].slice(-5),
+      support_preference:
+        parsed.supportPreference ?? profile.support_preference,
+      last_next_time_plan:
+        parsed.nextTimePlan ?? profile.last_next_time_plan,
       session_count: profile.session_count + 1,
     };
     this.profiles.set(childId, updated);
@@ -253,7 +290,7 @@ export function createRepository(config: AppConfig): ProfileRepository {
   if (config.demoInMemory) return new MemoryProfileRepository();
   if (!config.supabaseServiceRoleKey) {
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY is required unless DEMO_IN_MEMORY=1",
+      "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY is required unless DEMO_IN_MEMORY=1",
     );
   }
   return new SupabaseProfileRepository(

@@ -3,6 +3,7 @@ import type {
   ChildProfile,
   ChildProfileRecord,
   ParsedInsight,
+  PracticeSummary,
   ProfileRepository,
   SafetyHandoffRecord,
 } from "./types.js";
@@ -25,10 +26,25 @@ export const insightSchema = z
 
 export const timestampSchema = z.iso.datetime({ offset: true });
 
-function cleanExtract(value: string | undefined): string | null {
+function cleanExtract(
+  value: string | undefined,
+  maxLength = 120,
+): string | null {
   if (!value) return null;
-  const clean = value.replace(/[.!?]+$/, "").trim().slice(0, 120);
+  const clean = value.replace(/[.!?]+$/, "").trim().slice(0, maxLength);
   return clean.length > 0 ? clean : null;
+}
+
+function cleanStrategyList(value: string | undefined): string[] {
+  if (!value) return [];
+  return Array.from(
+    new Set(
+      value
+        .split(/\s*(?:,|\band\b)\s*/i)
+        .map((item) => cleanExtract(item, 80))
+        .filter((item): item is string => Boolean(item)),
+    ),
+  ).slice(0, 5);
 }
 
 export function parseInsight(rawInsight: string): ParsedInsight {
@@ -39,11 +55,29 @@ export function parseInsight(rawInsight: string): ParsedInsight {
   const strategy = insight.match(
     /\b(?:responded\s+well\s+to|did\s+well\s+with|liked|used)\s+([^;,.!?]{1,120})/i,
   );
+  const practiced = insight.match(/\bpracticed\s*:\s*([^;]{1,200})/i);
+  const support = insight.match(
+    /\bsupport\s+preference\s*:\s*([^;]{1,80})/i,
+  );
+  const plan = insight.match(
+    /\bnext[- ]time\s+plan\s*:\s*([^;]{1,180})/i,
+  );
+  const preferredGroundingStrategy = cleanExtract(strategy?.[1]);
+  const practicedStrategies = cleanStrategyList(practiced?.[1]);
+  if (
+    practicedStrategies.length === 0 &&
+    preferredGroundingStrategy
+  ) {
+    practicedStrategies.push(preferredGroundingStrategy);
+  }
 
   return {
     insight,
     recurringStruggle: cleanExtract(struggle?.[1]),
-    preferredGroundingStrategy: cleanExtract(strategy?.[1]),
+    preferredGroundingStrategy,
+    practicedStrategies,
+    supportPreference: cleanExtract(support?.[1], 80),
+    nextTimePlan: cleanExtract(plan?.[1], 180),
   };
 }
 
@@ -51,6 +85,17 @@ export function publicProfile(profile: ChildProfileRecord): ChildProfile {
   return {
     recurring_struggles: profile.recurring_struggles,
     preferred_grounding_strategy: profile.preferred_grounding_strategy,
+    session_count: profile.session_count,
+  };
+}
+
+export function practiceSummary(
+  profile: ChildProfileRecord,
+): PracticeSummary {
+  return {
+    practiced_strategies: profile.practiced_strategies,
+    support_preference: profile.support_preference,
+    next_time_plan: profile.last_next_time_plan,
     session_count: profile.session_count,
   };
 }

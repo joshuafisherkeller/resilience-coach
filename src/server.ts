@@ -10,7 +10,10 @@ import { ResilienceCoach, CoachSetupError } from "./coach.js";
 import { loadConfig, type AppConfig } from "./config.js";
 import { createResilienceMcpServer } from "./mcp.js";
 import { createRepository } from "./repository.js";
-import { childIdSchema } from "./tool-handlers.js";
+import {
+  childIdSchema,
+  practiceSummary,
+} from "./tool-handlers.js";
 import type { ProfileRepository } from "./types.js";
 import { buildWidgetHtml } from "./widget.js";
 
@@ -18,6 +21,15 @@ const coachPromptPath = resolve(
   process.cwd(),
   "resilience_coach_system_prompt.md",
 );
+const productAddendumPath = resolve(
+  process.cwd(),
+  "resilience_coach_product_addendum_v2.md",
+);
+const demoProfileIds = new Set([
+  "demo-sharing",
+  "demo-mistakes",
+  "demo-change",
+]);
 const requestBuckets = new Map<string, number[]>();
 
 function rateLimit(req: Request, res: Response, next: NextFunction): void {
@@ -82,16 +94,24 @@ function safeTokenMatch(received: string | undefined, expected: string): boolean
   );
 }
 
+function demoProfileId(value: unknown): string | null {
+  const parsed = childIdSchema.safeParse(value);
+  return parsed.success && demoProfileIds.has(parsed.data) ? parsed.data : null;
+}
+
 function landingPage(publicBaseUrl: string): string {
   const origin = publicBaseUrl.replace(/"/g, "&quot;");
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Resilience Coach &middot; Demo</title>
-<style>body{margin:0;background:#fffaf0;color:#172a27;font:18px/1.55 system-ui,sans-serif}main{width:min(760px,calc(100% - 36px));margin:48px auto}h1{font-size:clamp(38px,8vw,66px);line-height:1.05;margin-bottom:12px}.note{padding:16px;border:2px solid #8f6d1e;border-radius:14px;background:#fff3cf}.profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:28px 0}.profiles a{display:block;padding:20px;border-radius:16px;background:#1c6e63;color:white;font-weight:800;text-decoration:none;box-shadow:0 4px 0 #124a43}.small{font-size:15px;color:#49645f}code{font-size:15px}</style></head>
-<body><main><p class="small">OPENAI BUILD WEEK 2026 &middot; EDUCATION</p><h1>Resilience Coach</h1>
-<p>A short social-emotional learning practice companion for ages 6&ndash;8, designed for use with an adult nearby.</p>
-<div class="note"><strong>Synthetic demo only.</strong> No real children&rsquo;s names, accounts, or personal data belong in this app. This is a practice aid, not therapy or emergency support.</div>
-<div class="profiles"><a href="${origin}/demo/demo-sharing">Sharing demo</a><a href="${origin}/demo/demo-mistakes">Mistakes demo</a><a href="${origin}/demo/demo-change">Change demo</a></div>
+<title>Resilience Coach &middot; Practice together</title>
+<style>
+:root{color:#17342f;background:#fbf7ed;font:18px/1.55 "Avenir Next","Segoe UI",system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 10%,#fbd893 0,transparent 25%),#fbf7ed}main{width:min(980px,calc(100% - 36px));margin:0 auto;padding:54px 0 40px}.eyebrow{color:#35665d;font-size:14px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}h1{max-width:760px;margin:10px 0 18px;font-size:clamp(48px,9vw,82px);line-height:.98;letter-spacing:-.045em}.lead{max-width:720px;font-size:clamp(22px,3vw,29px);line-height:1.4}.actions{display:flex;flex-wrap:wrap;gap:14px;margin:30px 0}.primary,.secondary{display:inline-flex;min-height:58px;padding:14px 22px;align-items:center;border-radius:16px;font-weight:850;text-decoration:none}.primary{color:#fff;background:#17685d;box-shadow:0 5px 0 #0d463f}.secondary{border:2px solid #17685d;color:#174f48;background:#fff}.note{max-width:820px;padding:16px 18px;border:2px solid #a77718;border-radius:16px;background:#fff0c4}.features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:34px 0}.feature{padding:22px;border:1px solid #bdd6d0;border-radius:20px;background:#fff}.feature b{display:block;margin-bottom:6px;font-size:20px}.small{color:#4b645f;font-size:15px}code{font-size:14px}@media(max-width:700px){.features{grid-template-columns:1fr}main{padding-top:34px}}
+</style></head>
+<body><main><p class="eyebrow">OpenAI Build Week 2026 &middot; Education</p><h1>Practice what to try when things feel hard.</h1>
+<p class="lead">Resilience Coach is an adult-guided practice studio for ordinary setbacks. Children ages 6&ndash;8 notice, choose, try, and make one small next-time plan.</p>
+<div class="actions"><a class="primary" href="${origin}/demo">Start practicing together</a><a class="secondary" href="${origin}/demo#grown-up-view">Open the grown-up view</a></div>
+<div class="note"><strong>Synthetic demo only.</strong> An AI helps guide the practice, so a grown-up should stay nearby. Do not enter names or private information. This is an evidence-informed practice aid, not therapy, diagnosis, crisis care, or a replacement for care.</div>
+<section class="features" aria-label="What the app includes"><div class="feature"><b>Talk it through</b>Choose a small setback and follow one short, bounded practice loop.</div><div class="feature"><b>Try a tool</b>Use a breath, movement, quiet pause, or grown-up help when it fits.</div><div class="feature"><b>Make a plan</b>Finish with a visual if-then card and a transcript-free grown-up summary.</div></section>
 <p class="small">MCP endpoint: <code>${origin}/mcp</code> &middot; Health: <code>${origin}/health</code></p></main></body></html>`;
 }
 
@@ -132,23 +152,59 @@ export function createServerApp(
     });
   });
 
+  app.get("/favicon.ico", (_req, res) => {
+    res.status(204).end();
+  });
+
   app.get("/", (_req, res) => {
     res.type("html").send(landingPage(config.publicBaseUrl));
   });
 
-  app.get("/demo/:childId", (req, res) => {
-    const childId = childIdSchema.safeParse(req.params.childId);
-    if (!childId.success) {
-      res.status(404).send("Unknown synthetic demo profile");
-      return;
-    }
+  const sendWidget = (res: Response, childId: string): void => {
     res
       .setHeader(
         "Content-Security-Policy",
         "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; img-src 'none'; base-uri 'none'; frame-ancestors 'self' https://chatgpt.com https://*.chatgpt.com",
       )
       .type("html")
-      .send(buildWidgetHtml(config.publicBaseUrl, childId.data));
+      .send(buildWidgetHtml(config.publicBaseUrl, childId));
+  };
+
+  app.get("/demo", (_req, res) => {
+    sendWidget(res, "demo-sharing");
+  });
+
+  app.get("/demo/profile/:childId", async (req, res) => {
+    const childId = demoProfileId(req.params.childId);
+    if (!childId) {
+      res.status(404).send("Unknown synthetic demo profile");
+      return;
+    }
+    try {
+      const profile = await repository.getProfile(childId);
+      if (!profile) {
+        res.status(404).send("Unknown synthetic demo profile");
+        return;
+      }
+      res.setHeader("Cache-Control", "no-store");
+      res.json({
+        data: "synthetic_demo_only",
+        locked: profile.locked,
+        ...practiceSummary(profile),
+      });
+    } catch (error) {
+      console.error("Grown-up summary route failed", error);
+      res.status(500).json({ error: "The summary is taking a short pause." });
+    }
+  });
+
+  app.get("/demo/:childId", (req, res) => {
+    const childId = demoProfileId(req.params.childId);
+    if (!childId) {
+      res.status(404).send("Unknown synthetic demo profile");
+      return;
+    }
+    sendWidget(res, childId);
   });
 
   app.use("/coach", widgetCors(config), rateLimit);
@@ -230,7 +286,9 @@ export function createServerApp(
 
 export function createConfiguredServer(config = loadConfig()) {
   const repository = createRepository(config);
-  const systemPrompt = readFileSync(coachPromptPath, "utf8");
+  const fixedPrompt = readFileSync(coachPromptPath, "utf8");
+  const productAddendum = readFileSync(productAddendumPath, "utf8");
+  const systemPrompt = `${fixedPrompt}\n\n${productAddendum}`;
   const coach = new ResilienceCoach(repository, systemPrompt, config);
   return createServerApp(config, repository, coach);
 }
