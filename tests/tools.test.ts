@@ -34,6 +34,24 @@ describe("profile tool handlers", () => {
     );
   });
 
+  it("extracts a neutral practice summary without changing the public tool contract", async () => {
+    const repository = new MemoryProfileRepository();
+    const handlers = new CoachToolHandlers(repository);
+    await handlers.updateChildProfile(
+      "demo-mistakes",
+      "Practiced: shake hands out, one smaller step; Next-time plan: When a mistake feels hard, I will try one smaller step; Support preference: pictures and words",
+    );
+    const profile = await handlers.getChildProfile("demo-mistakes");
+    expect(profile.practiced_strategies).toEqual([
+      "shake hands out",
+      "one smaller step",
+    ]);
+    expect(profile.support_preference).toBe("pictures and words");
+    expect(profile.last_next_time_plan).toBe(
+      "When a mistake feels hard, I will try one smaller step",
+    );
+  });
+
   it("locks the profile and prevents later updates", async () => {
     const repository = new MemoryProfileRepository();
     const handlers = new CoachToolHandlers(repository);

@@ -14,6 +14,7 @@ const envSchema = z.object({
     .url()
     .default("https://sftdtlrrkxavklyvixoo.supabase.co"),
   SUPABASE_SERVICE_ROLE_KEY: optionalSecret,
+  SUPABASE_SECRET_KEY: optionalSecret,
   PUBLIC_BASE_URL: z.string().url().optional(),
   VERCEL_URL: z.string().min(1).optional(),
   PORT: z.coerce.number().int().min(1).max(65535).default(8787),
@@ -45,7 +46,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     openaiApiKey: value.OPENAI_API_KEY,
     openaiModel: value.OPENAI_MODEL,
     supabaseUrl: value.SUPABASE_URL.replace(/\/$/, ""),
-    supabaseServiceRoleKey: value.SUPABASE_SERVICE_ROLE_KEY,
+    supabaseServiceRoleKey:
+      value.SUPABASE_SECRET_KEY ?? value.SUPABASE_SERVICE_ROLE_KEY,
     publicBaseUrl: publicBaseUrl.replace(/\/$/, ""),
     port: value.PORT,
     host: value.HOST,

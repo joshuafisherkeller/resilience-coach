@@ -1,7 +1,7 @@
 {
   "name": "resilience-coach",
-  "version": "0.1.0",
-  "description": "Synthetic-data SEL practice companion with an Apps SDK widget and safety handoff.",
+  "version": "0.2.0",
+  "description": "Adult-guided, synthetic-data SEL practice studio with an Apps SDK widget and safety handoff.",
   "author": {
     "name": "Joshua Fisher-Keller",
     "url": "https://github.com/joshuafisherkeller"
@@ -19,8 +19,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Resilience Coach",
-    "shortDescription": "Child-safe SEL practice with synthetic data",
-    "longDescription": "Run and evaluate a short, adult-supervised SEL practice experience for ages 6–8, with synthetic profile memory, large choice-based UI, and a demoable safety lock and adult handoff.",
+    "shortDescription": "Adult-guided resilience practice with synthetic data",
+    "longDescription": "Run and evaluate a short, adult-guided practice experience for ages 6–8, with bounded synthetic skill and plan memory, accessibility choices, a grown-up summary, and a demoable safety lock and handoff.",
     "developerName": "Joshua Fisher-Keller",
     "category": "Education",
     "capabilities": [
@@ -30,10 +30,10 @@
     ],
     "websiteURL": "https://github.com/joshuafisherkeller/resilience-coach",
     "defaultPrompt": [
-      "Start Resilience Coach with the sharing demo.",
-      "Show the synthetic profile memory working.",
+      "Start an adult-guided Resilience Coach practice.",
+      "Show the synthetic practice plan memory working.",
       "Test the simulated safety handoff."
     ],
-    "brandColor": "#1C6E63"
+    "brandColor": "#17685D"
   }
 }

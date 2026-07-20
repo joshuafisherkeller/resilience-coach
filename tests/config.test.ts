@@ -18,4 +18,12 @@ describe("deployment configuration", () => {
     });
     expect(config.publicBaseUrl).toBe("https://coach.example.com");
   });
+
+  it("prefers a modern Supabase secret key while retaining legacy compatibility", () => {
+    const config = loadConfig({
+      SUPABASE_SECRET_KEY: "sb_secret_test",
+      SUPABASE_SERVICE_ROLE_KEY: "legacy-test",
+    });
+    expect(config.supabaseServiceRoleKey).toBe("sb_secret_test");
+  });
 });
