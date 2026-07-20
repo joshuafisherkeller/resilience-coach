@@ -83,53 +83,61 @@ export class OpenAIModelGateway implements ModelGateway {
 
 export class CoachSetupError extends Error {}
 
-const modelTools: Responses.FunctionTool[] = [
-  {
-    type: "function",
-    name: "get_child_profile",
-    description:
-      "Load the active synthetic child's profile once at the start of the practice session.",
-    strict: true,
-    parameters: {
-      type: "object",
-      properties: { child_id: { type: "string" } },
-      required: ["child_id"],
-      additionalProperties: false,
-    },
-  },
-  {
-    type: "function",
-    name: "update_child_profile",
-    description:
-      "At session end, save one neutral, non-clinical practice summary. Prefer: Practiced: ...; Next-time plan: When ..., I will ...; Support preference: ...",
-    strict: true,
-    parameters: {
-      type: "object",
-      properties: {
-        child_id: { type: "string" },
-        insight: { type: "string", minLength: 1, maxLength: 300 },
+function modelToolsForChild(childId: string): Responses.FunctionTool[] {
+  const childIdProperty = {
+    type: "string",
+    enum: [childId],
+    description: "The server-bound synthetic profile for this active session.",
+  } as const;
+
+  return [
+    {
+      type: "function",
+      name: "get_child_profile",
+      description:
+        "Load the active synthetic child's profile once at the start of the practice session.",
+      strict: true,
+      parameters: {
+        type: "object",
+        properties: { child_id: childIdProperty },
+        required: ["child_id"],
+        additionalProperties: false,
       },
-      required: ["child_id", "insight"],
-      additionalProperties: false,
     },
-  },
-  {
-    type: "function",
-    name: "trigger_safety_handoff",
-    description:
-      "Immediately lock the screen and record a simulated adult alert for any sign of danger, abuse, neglect, or self-harm. Do not include crisis details.",
-    strict: true,
-    parameters: {
-      type: "object",
-      properties: {
-        child_id: { type: "string" },
-        timestamp: { type: "string", format: "date-time" },
+    {
+      type: "function",
+      name: "update_child_profile",
+      description:
+        "At session end, save one neutral, non-clinical practice summary. Prefer: Practiced: ...; Next-time plan: When ..., I will ...; Support preference: ...",
+      strict: true,
+      parameters: {
+        type: "object",
+        properties: {
+          child_id: childIdProperty,
+          insight: { type: "string", minLength: 1, maxLength: 300 },
+        },
+        required: ["child_id", "insight"],
+        additionalProperties: false,
       },
-      required: ["child_id", "timestamp"],
-      additionalProperties: false,
     },
-  },
-];
+    {
+      type: "function",
+      name: "trigger_safety_handoff",
+      description:
+        "Immediately lock the screen and record a simulated adult alert for any sign of danger, abuse, neglect, or self-harm. Do not include crisis details.",
+      strict: true,
+      parameters: {
+        type: "object",
+        properties: {
+          child_id: childIdProperty,
+          timestamp: { type: "string", format: "date-time" },
+        },
+        required: ["child_id", "timestamp"],
+        additionalProperties: false,
+      },
+    },
+  ];
+}
 
 function sanitizeChildText(value: string): string {
   let text = value
@@ -299,9 +307,6 @@ export class ResilienceCoach {
     session: SessionState,
   ): Promise<{ output: unknown; safetyTriggered: boolean }> {
     const args = parseArguments(call);
-    if (args.child_id !== session.childId) {
-      throw new Error("Tool child_id does not match the active synthetic profile");
-    }
 
     if (call.name === "get_child_profile") {
       session.profile = await this.handlers.getChildProfile(session.childId);
@@ -412,7 +417,7 @@ export class ResilienceCoach {
         model: this.config.openaiModel,
         instructions: this.systemPrompt,
         input,
-        tools: modelTools,
+        tools: modelToolsForChild(session.childId),
         tool_choice: requiredTool
           ? { type: "function", name: requiredTool }
           : "auto",

@@ -158,6 +158,40 @@ describe("coach route orchestration", () => {
     expect((await repository.getProfile("demo-sharing"))?.session_count).toBe(1);
   });
 
+  it("keeps model tools bound to the server-selected synthetic profile", async () => {
+    const repository = new MemoryProfileRepository();
+    const model = new ScriptedModel();
+    const coach = new ResilienceCoach(repository, prompt, config, model);
+
+    await coach.reply({
+      child_id: "demo-mistakes",
+      session_id: "session-profile-binding",
+      message: "I made a mistake and felt upset.",
+    });
+    const ended = await coach.reply({
+      child_id: "demo-mistakes",
+      session_id: "session-profile-binding",
+      message: "I am ready to stop for now.",
+      end_session: true,
+    });
+
+    expect(ended.ended).toBe(true);
+    expect((await repository.getProfile("demo-mistakes"))?.session_count).toBe(1);
+    expect((await repository.getProfile("demo-sharing"))?.session_count).toBe(0);
+
+    for (const call of model.calls) {
+      const tools = (call.tools ?? []) as Responses.FunctionTool[];
+      for (const tool of tools) {
+        const childId = (
+          tool.parameters as {
+            properties?: { child_id?: { enum?: string[] } };
+          }
+        ).properties?.child_id;
+        expect(childId?.enum).toEqual(["demo-mistakes"]);
+      }
+    }
+  });
+
   it("locks before any model call when deterministic safety rules match", async () => {
     const repository = new MemoryProfileRepository();
     const model = new ScriptedModel();
