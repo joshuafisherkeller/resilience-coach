@@ -62,6 +62,9 @@ describe("dual-path guided practice widget", () => {
 
   it("keeps the contextual free-text path and transcript-free adult summary", () => {
     expect(html).toContain('id="own-words-form"');
+    expect(html).toContain("Want to use your own words?");
+    expect(html).toContain("Switch and tell the coach");
+    expect(html).toContain("where the coach will answer what you type");
     expect(html).toContain("Do not type names or private information.");
     expect(html).toContain("No transcript is shown or saved.");
     expect(html).toContain("No conversation transcript is saved.");

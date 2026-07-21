@@ -979,28 +979,16 @@
   byId("own-words-form").addEventListener("submit", function (event) {
     event.preventDefault();
     const input = byId("own-words-input");
-    const message = String(input.value || "").replace(/\s+/g, " ").trim();
+    const message = String(input.value || "").normalize("NFKC").replace(/\s+/g, " ").trim().slice(0, 300);
     if (!message || state.busy) return;
     input.value = "";
-    const currentStage = state.stage;
-    if (currentStage === "notice") {
-      state.selectedFeeling = state.selectedFeeling || state.scenario.feelings[0];
-      state.selectedBodyCue = state.selectedBodyCue || state.scenario.bodyCues[0];
-      state.stage = "choose";
-    } else if (currentStage === "choose") {
-      state.selectedStrategy = state.selectedStrategy || state.scenario.strategies[0];
-      state.stage = "try";
-    } else if (currentStage === "try") {
-      state.selectedPracticeWords = state.selectedPracticeWords || STRATEGIES[state.selectedStrategy].childChoices[0];
-      state.stage = "check";
-    } else if (currentStage === "check") {
-      state.selectedCheck = state.selectedCheck || "not-yet";
-      state.stage = "plan";
-    } else {
-      state.selectedPlan = message;
-    }
-    renderStage();
-    void coachTurn(message, currentStage, currentStage === "plan");
+    const activeChildId = state.childId;
+    resetJourney();
+    state.childId = activeChildId;
+    state.pathway = "words";
+    showPanel("words");
+    byId("word-starters").hidden = true;
+    void sendWordMessage(message, false);
   });
 
   for (const button of document.querySelectorAll("[data-word-starter]")) {

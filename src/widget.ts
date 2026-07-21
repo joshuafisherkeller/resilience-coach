@@ -219,10 +219,11 @@ export function buildWidgetHtml(
         </div>
 
         <details class="own-words">
-          <summary>Use my own words</summary>
+          <summary>Want to use your own words?</summary>
+          <p class="own-words-switch-note">This pauses the picture story and opens <strong>Talk It Through</strong>, where the coach will answer what you type.</p>
           <form id="own-words-form">
             <label for="own-words-input">A few made-up words are enough. Do not type names or private information.</label>
-            <div class="input-row"><input id="own-words-input" maxlength="300" autocomplete="off" /><button class="primary-button compact" type="submit">Tell the coach</button></div>
+            <div class="input-row"><input id="own-words-input" maxlength="300" autocomplete="off" /><button class="primary-button compact" type="submit">Switch and tell the coach</button></div>
           </form>
         </details>
       </section>
