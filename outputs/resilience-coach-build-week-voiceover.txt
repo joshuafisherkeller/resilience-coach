@@ -1,0 +1,35 @@
+RESILIENCE COACH — BUILD WEEK VIDEO VOICEOVER
+Target runtime: approximately 2 minutes 50 seconds
+
+SLIDE 1 — 0:00–0:18
+Resilience Coach is an evidence-informed practice app for children ages six to eight. It helps kids rehearse everyday hard moments: waiting for a turn, making a mistake, or facing a changed plan. It is not therapy or diagnosis—just practice with a trusted grown-up.
+
+SLIDE 2 — 0:18–0:35
+There are two ways to practice. Picture Story lets a child look, point, and choose through an illustrated situation. Talk It Through lets the child tap clear choices or type a few made-up words while GPT-5.6 responds. Both are adult-guided and stop after six child turns.
+
+SLIDE 3 — 0:35–0:51
+Every situation uses the same arc: notice the feeling, choose a strategy, practice together, check what changed, and make a next-time plan. Fifty-two original illustrations carry that sequence across sharing and waiting, making a mistake, and a change of plans.
+
+SLIDE 4 — 0:51–1:04
+The Grown-up View is transcript-free on purpose. No score, diagnosis, streak, or reward for disclosure—only the skill practiced, the support used, one next-time plan, and the completed synthetic practice count.
+
+SLIDE 5 — 1:04–1:25
+Under the hood, a TypeScript app on Vercel serves an OpenAI Apps SDK widget and Express backend. Before text reaches the model, the server runs a conservative deterministic safety check. Ordinary practice continues to GPT-5.6. Possible danger, abuse, neglect, or self-harm bypasses the model, locks the activity, and points the child to a trusted adult.
+
+SLIDE 6 — 1:25–1:40
+When GPT-5.6 responds, a strict schema allows only one short child-friendly message and up to three tappable choices. The server parses that structure before rendering, so raw tool data and uncontrolled formatting never reach the child interface.
+
+SLIDE 7 — 1:40–1:57
+The GPT-5.6 loop uses the Responses API, low reasoning effort for a fast bounded interaction, forced function calls at session boundaries, strict structured output, explicit prompt caching, and low verbosity. Every request sets store false; the app keeps only short-lived conversation memory and a bounded synthetic Supabase summary.
+
+SLIDE 8 — 1:57–2:15
+MCP makes the app’s data actions explicit. One tool loads a synthetic profile, one saves a bounded non-clinical summary, and one records a simulated safety handoff. The same endpoint exposes the widget to ChatGPT, while Supabase stores limited synthetic practice memory—never the transcript.
+
+SLIDE 9 — 2:15–2:31
+GPT-5.6 also acted as art director. It defined the visual system, character continuity, prompts, accessibility criteria, and quality checks. OpenAI’s image-generation tool rendered the pixels. Fifty-two accepted illustrations were optimized, reviewed in contact sheets, and regenerated when needed.
+
+SLIDE 10 — 2:31–2:48
+Joshua Fisher-Keller created the concept, pedagogical direction, safety boundaries, and product decisions. Codex turned those decisions into the Supabase schema, MCP server, GPT-5.6 flow, widget, safety logic, illustration pipeline, tests, deployment, and public audit trail—and used connected tools to verify the result.
+
+SLIDE 11 — 2:48–2:58
+Resilience Coach: a short practice, with a grown-up, for the moments that are hard right now—so the next one gets a little easier.
