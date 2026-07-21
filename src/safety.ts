@@ -38,7 +38,7 @@ const patterns: Array<[SafetyConcern, RegExp[]]> = [
       /\b(?:someone|they|he|she|my\s+\w+)\s+(?:hit|hits|kicked|kicks|punched|punches|choked|chokes|burned|burns|hurt|hurts)\s+me\b/i,
       /\bi(?:'m| am)\s+(?:not\s+safe|unsafe|in\s+danger)\b/i,
       /\b(?:gun|knife|weapon)\s+(?:at|near|on)\s+me\b/i,
-      /\b(?:help|save)\s+me\b/i,
+      /\b(?:help|save)\s+me(?:\s+(?:now|please))?[.!?]?\s*$/i,
     ],
   ],
 ];
