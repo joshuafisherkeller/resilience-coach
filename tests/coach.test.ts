@@ -124,6 +124,15 @@ describe("coach route orchestration", () => {
         (call) => call.text?.format?.type === "json_schema",
       ),
     ).toBe(true);
+    expect(
+      model.calls.every((call) =>
+        (call.tools ?? []).every(
+          (tool) =>
+            tool.type !== "function" ||
+            tool.name !== "trigger_safety_handoff",
+        ),
+      ),
+    ).toBe(true);
 
     const ended = await coach.reply({
       child_id: "demo-sharing",

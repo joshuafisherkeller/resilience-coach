@@ -151,22 +151,6 @@ function modelToolsForChild(childId: string): Responses.FunctionTool[] {
         additionalProperties: false,
       },
     },
-    {
-      type: "function",
-      name: "trigger_safety_handoff",
-      description:
-        "Immediately lock the screen and record a simulated adult alert for any sign of danger, abuse, neglect, or self-harm. Do not include crisis details.",
-      strict: true,
-      parameters: {
-        type: "object",
-        properties: {
-          child_id: childIdProperty,
-          timestamp: { type: "string", format: "date-time" },
-        },
-        required: ["child_id", "timestamp"],
-        additionalProperties: false,
-      },
-    },
   ];
 }
 
