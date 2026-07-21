@@ -1,8 +1,10 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildWidgetHtml } from "../src/widget.js";
 
 describe("dual-path guided practice widget", () => {
   const html = buildWidgetHtml("https://example.test", "demo-sharing");
+  const css = readFileSync(new URL("../web/widget.css", import.meta.url), "utf8");
 
   it("offers picture and conversation practices as two clear entrances", () => {
     expect(html).toContain("Hard moments happen. We can practice what to try.");
@@ -50,6 +52,13 @@ describe("dual-path guided practice widget", () => {
     expect(html).toContain('id="story-panel"');
     expect(html).toContain('id="activity-stage"');
     expect(html).toContain('id="plan-card"');
+  });
+
+  it("preserves illustration proportions across browser widths", () => {
+    expect(css).toMatch(/img\s*\{[^}]*height:\s*auto;/s);
+    expect(css).toMatch(
+      /\.welcome-art img\s*\{[^}]*aspect-ratio:\s*8\s*\/\s*5;[^}]*object-fit:\s*cover;/s,
+    );
   });
 
   it("keeps supports contextual instead of presenting five equivalent modes", () => {
