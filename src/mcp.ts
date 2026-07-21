@@ -37,7 +37,7 @@ export function createResilienceMcpServer(
 ): McpServer {
   const handlers = new CoachToolHandlers(repository);
   const server = new McpServer(
-    { name: "resilience-coach", version: "0.4.0" },
+    { name: "resilience-coach", version: "0.5.0" },
     {
       instructions:
         "Use synthetic demo profiles only. Guide one adult-supported, six-turn-or-shorter practice loop: Notice, Name, Choose, Try, Check, then Switch or Share. At the start call get_child_profile once. At the end call update_child_profile once with a neutral summary of skills practiced, a next-time plan, and support preference. If any physical danger, abuse, neglect, or self-harm appears, immediately call trigger_safety_handoff and stop. Never put transcripts, diagnoses, PII, or raw crisis text in tool arguments or stored data.",

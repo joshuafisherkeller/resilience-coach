@@ -5,7 +5,7 @@
   "functions": {
     "src/server.ts": {
       "maxDuration": 60,
-      "includeFiles": "{resilience_coach_system_prompt.md,resilience_coach_product_addendum_v4.md,web/**,assets/web/**}"
+      "includeFiles": "{resilience_coach_system_prompt.md,resilience_coach_product_addendum_v5.md,web/**,assets/web/**}"
     }
   }
 }

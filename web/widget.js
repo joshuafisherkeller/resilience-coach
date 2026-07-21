@@ -328,6 +328,7 @@
     serverOrigin: String(config.serverOrigin || "").replace(/\/$/, ""),
     sessionId: newSessionId(),
     displayPreferences: loadDisplayPreferences(),
+    pathway: null,
     scenario: null,
     storyIndex: 0,
     stage: "notice",
@@ -344,12 +345,14 @@
     previousPanel: "welcome",
     timerId: null,
     timerRemaining: 20,
+    wordsTurnCount: 0,
     requestVersion: 0,
   };
 
   const byId = (id) => document.getElementById(id);
   const panelIds = {
     welcome: "welcome-panel",
+    words: "conversation-panel",
     scenario: "scenario-panel",
     story: "story-panel",
     practice: "practice-panel",
@@ -406,6 +409,9 @@
     if (value) byId("coach-message").textContent = "The coach is thinking about what you chose...";
     for (const button of byId("activity-stage").querySelectorAll("button")) {
       button.disabled = value || button.dataset.ready === "false";
+    }
+    for (const control of byId("conversation-panel").querySelectorAll("button, input")) {
+      control.disabled = value;
     }
   }
 
@@ -480,10 +486,121 @@
     }
   }
 
+  function addConversationMessage(message, speaker) {
+    const log = byId("conversation");
+    const item = document.createElement("div");
+    item.className = `conversation-message ${speaker === "child" ? "child-message-bubble" : "coach-message-bubble"}`;
+    if (speaker !== "child") {
+      const image = document.createElement("img");
+      image.src = asset("completion/small-progress-motif.png");
+      image.alt = "";
+      image.width = 40;
+      image.height = 40;
+      item.appendChild(image);
+    }
+    const bubble = document.createElement("div");
+    const label = document.createElement("span");
+    label.textContent = speaker === "child" ? "You" : "Coach";
+    const text = document.createElement("p");
+    text.textContent = String(message || "").trim();
+    bubble.append(label, text);
+    item.appendChild(bubble);
+    log.appendChild(item);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function updateWordProgress(turnCount) {
+    const currentIndex = Math.min(Math.max(Number(turnCount) || 0, 0), 5);
+    const steps = byId("conversation-panel").querySelectorAll(".conversation-steps span");
+    for (const [index, step] of Array.from(steps).entries()) {
+      step.classList.toggle("is-current", index === currentIndex);
+      step.classList.toggle("is-complete", index < currentIndex);
+    }
+    byId("conversation-progress").textContent = `Step ${currentIndex + 1} of 6`;
+  }
+
+  function renderWordChoices(choices) {
+    const container = byId("word-response-choices");
+    container.replaceChildren();
+    for (const choice of Array.isArray(choices) ? choices.slice(0, 3) : []) {
+      const clean = String(choice || "").replace(/\s+/g, " ").trim();
+      if (!clean) continue;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = clean;
+      button.addEventListener("click", () => void sendWordMessage(clean, false));
+      container.appendChild(button);
+    }
+  }
+
+  function resetWordsPractice() {
+    byId("word-starters").hidden = false;
+    byId("word-response-choices").replaceChildren();
+    byId("conversation-input").value = "";
+    byId("conversation").replaceChildren();
+    addConversationMessage("What small made-up hard moment should we practice?", "coach");
+    updateWordProgress(0);
+  }
+
+  function startWordsPractice() {
+    resetJourney();
+    state.pathway = "words";
+    showPanel("words");
+    byId("word-starters").querySelector("button")?.focus();
+  }
+
+  async function sendWordMessage(message, endSession) {
+    const clean = String(message || "").normalize("NFKC").replace(/\s+/g, " ").trim().slice(0, 300);
+    if (!clean || state.busy || state.locked || state.pathway !== "words") return null;
+    const requestVersion = state.requestVersion;
+    byId("word-starters").hidden = true;
+    renderWordChoices([]);
+    addConversationMessage(clean, "child");
+    setBusy(true);
+    try {
+      const response = await fetch(`${state.serverOrigin}/coach`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          child_id: state.childId,
+          session_id: state.sessionId,
+          message: clean,
+          end_session: Boolean(endSession),
+          support_preference: "two clear choices",
+        }),
+      });
+      const result = await response.json();
+      if (requestVersion !== state.requestVersion) return null;
+      if (result.locked) {
+        showLockedScreen();
+        return result;
+      }
+      if (!response.ok) throw new Error("coach unavailable");
+      state.wordsTurnCount = Number(result.turn_count) || state.wordsTurnCount + 1;
+      updateWordProgress(state.wordsTurnCount);
+      addConversationMessage(result.message, "coach");
+      maybeSpeak(result.message);
+      if (result.ended) {
+        renderCompletion(result.summary, result.message);
+        return result;
+      }
+      renderWordChoices(result.choices);
+      return result;
+    } catch (_error) {
+      if (requestVersion === state.requestVersion) {
+        addConversationMessage("The coach connection needs a grown-up's help. We can pause here and try again.", "coach");
+      }
+      return null;
+    } finally {
+      if (!state.locked && requestVersion === state.requestVersion) setBusy(false);
+    }
+  }
+
   function resetJourney() {
     stopTimer();
     state.requestVersion += 1;
     state.sessionId = newSessionId();
+    state.pathway = null;
     state.scenario = null;
     state.storyIndex = 0;
     state.stage = "notice";
@@ -495,13 +612,16 @@
     state.selectedPlan = null;
     state.summary = null;
     state.busy = false;
+    state.wordsTurnCount = 0;
     setCoachMessage("We can take this one small step at a time.");
+    resetWordsPractice();
   }
 
   function selectScenario(scenarioId) {
     const scenario = SCENARIOS[scenarioId];
     if (!scenario) return;
     resetJourney();
+    state.pathway = "pictures";
     state.scenario = scenario;
     state.childId = scenario.childId;
     state.storyIndex = 0;
@@ -750,21 +870,27 @@
     stopTimer();
     state.summary = summary || null;
     showPanel("plan");
-    byId("plan-heading").textContent = "You practiced one small hard moment.";
-    byId("plan-text").textContent = state.selectedPlan || summary?.next_time_plan || "When something feels hard, I will ask my grown-up what to try.";
-    const currentStrategy = STRATEGIES[state.selectedStrategy]?.title;
+    const savedStrategies = Array.isArray(summary?.practiced_strategies)
+      ? summary.practiced_strategies.filter((value) => !/(?:next[- ]time plan|support preference)/i.test(String(value)))
+      : [];
+    const pictureStrategy = STRATEGIES[state.selectedStrategy]?.title;
+    const currentStrategy = state.pathway === "words" ? savedStrategies.at(-1) : pictureStrategy;
+    byId("plan-heading").textContent = state.pathway === "words"
+      ? "You talked through one small hard moment."
+      : "You practiced one small hard moment.";
+    byId("plan-text").textContent = (state.pathway === "pictures" ? state.selectedPlan : null) || summary?.next_time_plan || "When something feels hard, I will ask my grown-up what to try.";
     tagList(byId("plan-strategies"), currentStrategy ? [currentStrategy] : []);
     maybeSpeak(closingMessage || byId("plan-text").textContent);
   }
 
   function renderGrownUpSummary(summary) {
-    const currentStrategy = STRATEGIES[state.selectedStrategy]?.title;
     const savedStrategies = Array.isArray(summary?.practiced_strategies)
       ? summary.practiced_strategies.filter((value) => !/(?:next[- ]time plan|support preference)/i.test(String(value)))
       : [];
+    const currentStrategy = state.pathway === "pictures" ? STRATEGIES[state.selectedStrategy]?.title : null;
     byId("grown-up-strategies").textContent = currentStrategy || savedStrategies.slice(0, 3).join(", ") || "None saved yet";
-    byId("grown-up-plan").textContent = state.selectedPlan || summary?.next_time_plan || "No plan saved yet";
-    byId("grown-up-preference").textContent = "Pictures and words";
+    byId("grown-up-plan").textContent = (state.pathway === "pictures" ? state.selectedPlan : null) || summary?.next_time_plan || "No plan saved yet";
+    byId("grown-up-preference").textContent = state.pathway === "words" ? "Clear choices and words" : "Pictures and words";
     byId("grown-up-count").textContent = String(Number(summary?.session_count) || 0);
     byId("grown-up-status").hidden = true;
     byId("grown-up-summary").hidden = false;
@@ -805,7 +931,16 @@
     byId("preferences-button").focus();
   }
 
-  byId("begin-button").addEventListener("click", () => showPanel("scenario"));
+  byId("begin-picture-button").addEventListener("click", function () {
+    resetJourney();
+    state.pathway = "pictures";
+    showPanel("scenario");
+  });
+  byId("begin-words-button").addEventListener("click", startWordsPractice);
+  byId("conversation-back").addEventListener("click", function () {
+    resetJourney();
+    showPanel("welcome");
+  });
   byId("scenario-back").addEventListener("click", () => showPanel("welcome"));
   for (const button of document.querySelectorAll("[data-scenario]")) {
     button.addEventListener("click", () => selectScenario(button.dataset.scenario));
@@ -868,6 +1003,26 @@
     void coachTurn(message, currentStage, currentStage === "plan");
   });
 
+  for (const button of document.querySelectorAll("[data-word-starter]")) {
+    button.addEventListener("click", function () {
+      const scenario = SCENARIOS[button.dataset.wordStarter];
+      if (!scenario || state.wordsTurnCount > 0) return;
+      state.childId = scenario.childId;
+      void sendWordMessage(scenario.starter, false);
+    });
+  }
+  byId("conversation-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+    const input = byId("conversation-input");
+    const message = String(input.value || "").replace(/\s+/g, " ").trim();
+    if (!message || state.busy) return;
+    input.value = "";
+    void sendWordMessage(message, false);
+  });
+  byId("word-dont-know").addEventListener("click", () => void sendWordMessage("I don't know yet. Please give me two simple choices.", false));
+  byId("word-dont-understand").addEventListener("click", () => void sendWordMessage("I don't understand. Please use fewer, simpler words.", false));
+  byId("word-finish").addEventListener("click", () => void sendWordMessage("I am ready to stop. Please help me make one small next-time plan.", true));
+
   byId("preferences-button").addEventListener("click", function () {
     if (byId("preferences-panel").hidden) openPreferences(); else closePreferences();
   });
@@ -892,7 +1047,7 @@
   byId("close-grown-up").addEventListener("click", closeGrownUpView);
   byId("new-practice").addEventListener("click", function () {
     resetJourney();
-    showPanel("scenario");
+    showPanel("welcome");
   });
 
   window.addEventListener("message", function (event) {

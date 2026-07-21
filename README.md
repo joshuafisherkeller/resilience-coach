@@ -2,8 +2,10 @@
 
 Resilience Coach helps children practice what to try when ordinary things feel
 hard—together with a grown-up. It is a short, adult-guided practice studio for
-ages 6–8, built with GPT-5.6, exactly three MCP tools, an OpenAI Apps SDK
-widget, and bounded synthetic continuity data in Supabase.
+ages 6–8 with two first-class pathways: an illustrated **Picture Story** and a
+type-or-tap **Talk It Through** practice. It is built with GPT-5.6, exactly
+three MCP tools, an OpenAI Apps SDK widget, and bounded synthetic continuity
+data in Supabase.
 
 Built by Joshua Fisher-Keller for OpenAI Build Week 2026, Education track.
 
@@ -19,9 +21,16 @@ Try the live synthetic demo: <https://resilience-coach.vercel.app/>
 
 ## Product experience
 
-Resilience Coach is now a picture-led guided practice rather than an open-ended
-chat or a collection of support modes. A child and nearby grown-up first choose
-one of three meaningfully different ordinary moments:
+Resilience Coach is a bounded guided practice rather than an open-ended child
+chatbot or a collection of disconnected support modes. A child and nearby
+grown-up first choose how they want to practice:
+
+- **Picture Story** is an illustrated look-point-choose journey.
+- **Talk It Through** is a six-turn type-or-tap conversation using made-up
+  examples, short coach responses, and clear choices.
+
+The Picture Story pathway then offers three meaningfully different ordinary
+moments:
 
 - **Sharing and waiting** teaches noticing body clues, softening tight hands,
   practicing turn words, and asking a grown-up for help.
@@ -30,8 +39,8 @@ one of three meaningfully different ordinary moments:
 - **A change of plans** teaches noticing disappointment, taking a short quiet
   pause, and choosing what can still happen next.
 
-Each situation begins with a five-panel visual story and then follows one
-bounded six-turn journey:
+Each picture situation begins with a five-panel visual story and then follows
+one bounded six-turn journey:
 
 **Choose a moment → Notice → Choose a strategy → Practice together → Check → Plan**
 
@@ -41,6 +50,12 @@ default support throughout, not an optional mode. Movement, quiet, and grown-up
 help appear contextually only when they fit the chosen situation. The child can
 point or tap, use a few made-up words, ask for adult help, switch ideas, or stop.
 Each session ends with a visual **My next-time plan** card.
+
+Talk It Through follows the same learning arc—Notice, Name, Choose, Try,
+Check, and Plan—one small prompt at a time. The child can choose a made-up
+starter, tap a GPT-5.6 response choice, type a few made-up words, ask for simpler
+language, say they do not know yet, or stop early. This preserves meaningful
+child expression while keeping the activity short, adult-guided, and private.
 
 The **Grown-up view** contains only:
 
@@ -80,10 +95,10 @@ short-lived conversation history remains only in server memory and expires.
 The supplied [`resilience_coach_system_prompt.md`](./resilience_coach_system_prompt.md)
 is preserved byte-for-byte as the Build Week audit artifact. The runtime loads
 it together with the versioned
-[`resilience_coach_product_addendum_v4.md`](./resilience_coach_product_addendum_v4.md),
+[`resilience_coach_product_addendum_v5.md`](./resilience_coach_product_addendum_v5.md),
 which tells GPT-5.6 how to provide short adaptive feedback inside the authored
-illustrated journey while the interface owns the stable picture choices. The
-v2 and v3 addenda remain in the repository as version history.
+illustrated journey and how to guide the bounded type-or-tap conversation. The
+v2 through v4 addenda remain in the repository as version history.
 
 ## Original illustration system
 
@@ -277,9 +292,10 @@ public Git history records the boundary:
 Joshua made the product and pedagogical decisions: target ages, adult-guided
 scope, synthetic-data boundary, fixed prompt, Supabase project, safety boundary,
 approval of the evidence-informed direction, and the decision to replace the
-technical mode picker with a warm picture-led practice. Codex translated those
+technical mode picker with a warm picture-led practice, then the decision to
+preserve both picture and conversational practice. Codex translated those
 decisions into the schema, exact tool implementation, structured GPT-5.6 flow,
-guided journey, asset integration, safety controls, tests, migration,
+two-path guided journey, asset integration, safety controls, tests, migration,
 deployment, and timestamped audit trail. GPT-5.6 separately orchestrated the
 original illustration package described above. The original prompt SHA-256 remains
 `78cf0d7a3f6c9a149a3e91e0105656ea5b19cec7d69ced2dcd43e9c320745f51`.

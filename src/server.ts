@@ -24,7 +24,7 @@ const coachPromptPath = resolve(
 );
 const productAddendumPath = resolve(
   process.cwd(),
-  "resilience_coach_product_addendum_v4.md",
+  "resilience_coach_product_addendum_v5.md",
 );
 const demoProfileIds = new Set([
   "demo-sharing",
@@ -109,10 +109,10 @@ function landingPage(publicBaseUrl: string): string {
 :root{color:#17342f;background:#fbf7ed;font:18px/1.55 "Avenir Next","Segoe UI",system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 10%,#fbd893 0,transparent 25%),#fbf7ed}main{width:min(1080px,calc(100% - 36px));margin:0 auto;padding:42px 0 40px}.hero{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(320px,.98fr);gap:42px;align-items:center}.hero img{width:100%;border:8px solid #fff;border-radius:32px;box-shadow:0 22px 55px rgba(24,70,62,.14)}.eyebrow{color:#35665d;font-size:14px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}h1{max-width:760px;margin:10px 0 18px;font-size:clamp(48px,8vw,76px);line-height:.98;letter-spacing:-.045em}.lead{max-width:720px;font-size:clamp(21px,3vw,27px);line-height:1.4}.actions{display:flex;flex-wrap:wrap;gap:14px;margin:30px 0}.primary,.secondary{display:inline-flex;min-height:58px;padding:14px 22px;align-items:center;border-radius:16px;font-weight:850;text-decoration:none}.primary{color:#fff;background:#17685d;box-shadow:0 5px 0 #0d463f}.secondary{border:2px solid #17685d;color:#174f48;background:#fff}.note{margin-top:30px;padding:16px 18px;border:2px solid #a77718;border-radius:16px;background:#fff0c4}.features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:34px 0}.feature{padding:22px;border:1px solid #bdd6d0;border-radius:20px;background:#fff}.feature b{display:block;margin-bottom:6px;font-size:20px}.small{color:#4b645f;font-size:15px}code{font-size:14px}@media(max-width:800px){.hero{grid-template-columns:1fr}.hero img{order:-1}.features{grid-template-columns:1fr}main{padding-top:24px}}
 </style></head>
 <body><main><section class="hero"><div><p class="eyebrow">OpenAI Build Week 2026 &middot; Education</p><h1>Practice hard moments, together.</h1>
-<p class="lead">Warm picture stories help children ages 6&ndash;8 notice, choose, practice, and make one small next-time plan with a grown-up nearby.</p>
-<div class="actions"><a class="primary" href="${origin}/demo">Start a picture practice</a><a class="secondary" href="${origin}/demo#grown-up-view">Grown-up view</a></div></div><img src="${origin}/assets/brand/welcome-practice-together.webp" alt="Child and grown-up sitting together and looking at picture cards."></section>
+<p class="lead">Picture stories and short type-or-tap conversations help children ages 6&ndash;8 practice one small next step with a grown-up nearby.</p>
+<div class="actions"><a class="primary" href="${origin}/demo">Choose a practice</a><a class="secondary" href="${origin}/demo#grown-up-view">Grown-up view</a></div></div><img src="${origin}/assets/brand/welcome-practice-together.webp" alt="Child and grown-up sitting together and looking at picture cards."></section>
 <div class="note"><strong>Synthetic demo only.</strong> An AI helps guide the practice, so a grown-up should stay nearby. Do not enter names or private information. This is an evidence-informed practice aid, not therapy, diagnosis, crisis care, or a replacement for care.</div>
-<section class="features" aria-label="What the app includes"><div class="feature"><b>See the moment</b>Choose a familiar setback and follow a short illustrated story.</div><div class="feature"><b>Practice together</b>Try words, movement, quiet, or grown-up help when it fits.</div><div class="feature"><b>Make a plan</b>Finish with a visual if-then plan and transcript-free grown-up summary.</div></section>
+<section class="features" aria-label="What the app includes"><div class="feature"><b>Picture Story</b>Look, point, and choose through a familiar illustrated moment.</div><div class="feature"><b>Talk It Through</b>Type a few made-up words or tap a clear coach choice.</div><div class="feature"><b>Make a plan</b>Finish with a visual if-then plan and transcript-free grown-up summary.</div></section>
 <p class="small">MCP endpoint: <code>${origin}/mcp</code> &middot; Health: <code>${origin}/health</code></p></main></body></html>`;
 }
 

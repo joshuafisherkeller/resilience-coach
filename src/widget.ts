@@ -76,15 +76,81 @@ export function buildWidgetHtml(
 
       <section id="welcome-panel" class="welcome-panel">
         <div class="welcome-copy">
-          <p class="eyebrow">A short picture practice for ages 6-8</p>
+          <p class="eyebrow">Two ways to practice - ages 6-8</p>
           <h1>Hard moments happen. We can practice what to try.</h1>
-          <p class="welcome-lead">Pick one ordinary moment, see a picture story, and try one small skill with a grown-up.</p>
-          <button id="begin-button" class="primary-button" type="button">A grown-up is here - let's practice</button>
+          <p class="welcome-lead">Choose pictures or a short conversation. Both help a child and grown-up practice one small skill together.</p>
+          <p class="pathway-prompt"><strong>A grown-up is here. How should we practice?</strong></p>
+          <div class="pathway-grid" aria-label="Choose how to practice">
+            <button id="begin-picture-button" class="pathway-card" type="button">
+              <img src="${asset("scenarios/sharing/card-sharing-and-waiting.webp")}" alt="Two children sit near a toy while one waits for a turn." width="800" height="600" />
+              <span><small>Look, point, and choose</small><strong>Picture Story</strong><em>Follow an illustrated moment and practice a skill.</em></span>
+            </button>
+            <button id="begin-words-button" class="pathway-card" type="button">
+              <img src="${asset("grown-up/grown-up-listens-nearby.webp")}" alt="Child speaks while a grown-up sits nearby and listens." width="800" height="600" />
+              <span><small>Type or tap together</small><strong>Talk It Through</strong><em>Use a few made-up words and clear choices.</em></span>
+            </button>
+          </div>
           <p class="time-note">About 3-5 minutes. You can stop anytime.</p>
         </div>
         <figure class="welcome-art">
           <img src="${asset("brand/welcome-practice-together.webp")}" alt="Child and grown-up sitting together and looking at three picture cards." width="1600" height="1000" />
         </figure>
+      </section>
+
+      <section id="conversation-panel" class="conversation-panel" hidden>
+        <div class="conversation-topline">
+          <button id="conversation-back" class="quiet-button" type="button">Choose another way</button>
+          <p id="conversation-progress" aria-live="polite">Step 1 of 6</p>
+        </div>
+        <div class="conversation-heading">
+          <div>
+            <p class="eyebrow">Talk it through</p>
+            <h1>A few words are enough.</h1>
+            <p>The coach will ask one small question at a time. Tap a choice or type a made-up example together.</p>
+          </div>
+          <img src="${asset("grown-up/grown-up-listens-nearby.webp")}" alt="Child speaks while a grown-up sits nearby and listens." width="800" height="600" />
+        </div>
+
+        <div class="conversation-steps" aria-label="Conversation practice progress">
+          <span class="is-current">Notice</span><span>Name</span><span>Choose</span><span>Try</span><span>Check</span><span>Plan</span>
+        </div>
+
+        <div id="word-starters" class="word-starters">
+          <p><strong>Pick a made-up moment, or write your own.</strong></p>
+          <div class="word-starter-grid">
+            <button type="button" data-word-starter="sharing">
+              <img src="${asset("scenarios/sharing/card-sharing-and-waiting.webp")}" alt="Two children sit near a toy while one waits for a turn." width="800" height="600" />
+              <span><strong>Waiting for a turn</strong><small>Waiting felt hard.</small></span>
+            </button>
+            <button type="button" data-word-starter="mistakes">
+              <img src="${asset("scenarios/mistakes/card-making-a-mistake.webp")}" alt="Child notices a torn piece in a paper collage." width="800" height="600" />
+              <span><strong>A mistake</strong><small>Something did not go as planned.</small></span>
+            </button>
+            <button type="button" data-word-starter="change">
+              <img src="${asset("scenarios/change/card-change-of-plans.webp")}" alt="Child and grown-up talk beside a rainy window and indoor toys." width="800" height="600" />
+              <span><strong>A changed plan</strong><small>What I expected was different.</small></span>
+            </button>
+          </div>
+        </div>
+
+        <div id="conversation" class="conversation-log" role="log" aria-live="polite" aria-label="Practice conversation">
+          <div class="conversation-message coach-message-bubble">
+            <img src="${asset("completion/small-progress-motif.png")}" alt="" width="40" height="40" />
+            <div><span>Coach</span><p>What small made-up hard moment should we practice?</p></div>
+          </div>
+        </div>
+        <div id="word-response-choices" class="word-response-choices" aria-label="Coach choices"></div>
+
+        <form id="conversation-form" class="conversation-form">
+          <label for="conversation-input">Type a few made-up words. Do not type names or private information.</label>
+          <div class="input-row"><input id="conversation-input" maxlength="300" autocomplete="off" placeholder="A made-up example..." /><button class="primary-button compact" type="submit">Tell the coach</button></div>
+        </form>
+        <div class="conversation-help">
+          <button id="word-dont-know" class="quiet-button" type="button">I don't know yet</button>
+          <button id="word-dont-understand" class="quiet-button" type="button">I don't understand</button>
+          <button id="word-finish" class="quiet-button danger-quiet" type="button">Stop and make my plan</button>
+        </div>
+        <p class="privacy-note"><strong>No conversation transcript is saved.</strong> Only one brief skill summary and next-time plan can be remembered.</p>
       </section>
 
       <section id="scenario-panel" class="scenario-panel" hidden>
@@ -186,7 +252,7 @@ export function buildWidgetHtml(
         <dl id="grown-up-summary" class="summary-grid" hidden>
           <div><dt>Skills practiced</dt><dd id="grown-up-strategies">None saved yet</dd></div>
           <div><dt>Next-time plan</dt><dd id="grown-up-plan">No plan saved yet</dd></div>
-          <div><dt>Picture support</dt><dd id="grown-up-preference">Pictures and words</dd></div>
+          <div><dt>Practice support</dt><dd id="grown-up-preference">Pictures and words</dd></div>
           <div><dt>Completed practices</dt><dd id="grown-up-count">0</dd></div>
         </dl>
         <p class="privacy-note"><strong>No transcript is shown or saved.</strong> This synthetic summary contains only practiced skills and one next-time plan.</p>
