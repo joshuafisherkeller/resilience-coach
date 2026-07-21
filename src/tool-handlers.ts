@@ -47,6 +47,19 @@ function cleanStrategyList(value: string | undefined): string[] {
   ).slice(0, 5);
 }
 
+function extractSummaryField(
+  insight: string,
+  label: string,
+  maxLength: number,
+): string | null {
+  const fieldBoundary =
+    "(?=\\s*(?:;|practiced\\s*:|next[- ]time\\s+plan\\s*:|support\\s+preference\\s*:|$))";
+  const match = insight.match(
+    new RegExp(`\\b${label}\\s*:\\s*(.{1,240}?)${fieldBoundary}`, "i"),
+  );
+  return cleanExtract(match?.[1], maxLength);
+}
+
 export function parseInsight(rawInsight: string): ParsedInsight {
   const insight = insightSchema.parse(rawInsight);
   const struggle = insight.match(
@@ -55,15 +68,19 @@ export function parseInsight(rawInsight: string): ParsedInsight {
   const strategy = insight.match(
     /\b(?:responded\s+well\s+to|did\s+well\s+with|liked|used)\s+([^;,.!?]{1,120})/i,
   );
-  const practiced = insight.match(/\bpracticed\s*:\s*([^;]{1,200})/i);
-  const support = insight.match(
-    /\bsupport\s+preference\s*:\s*([^;]{1,80})/i,
+  const practiced = extractSummaryField(insight, "practiced", 200);
+  const support = extractSummaryField(
+    insight,
+    "support\\s+preference",
+    80,
   );
-  const plan = insight.match(
-    /\bnext[- ]time\s+plan\s*:\s*([^;]{1,180})/i,
+  const plan = extractSummaryField(
+    insight,
+    "next[- ]time\\s+plan",
+    180,
   );
   const preferredGroundingStrategy = cleanExtract(strategy?.[1]);
-  const practicedStrategies = cleanStrategyList(practiced?.[1]);
+  const practicedStrategies = cleanStrategyList(practiced ?? undefined);
   if (
     practicedStrategies.length === 0 &&
     preferredGroundingStrategy
@@ -76,8 +93,8 @@ export function parseInsight(rawInsight: string): ParsedInsight {
     recurringStruggle: cleanExtract(struggle?.[1]),
     preferredGroundingStrategy,
     practicedStrategies,
-    supportPreference: cleanExtract(support?.[1], 80),
-    nextTimePlan: cleanExtract(plan?.[1], 180),
+    supportPreference: support,
+    nextTimePlan: plan,
   };
 }
 

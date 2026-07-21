@@ -43,6 +43,12 @@ describe("picture-led guided practice widget", () => {
     expect(html).toContain("No transcript is shown or saved.");
   });
 
+  it("keeps the child-facing completion focused on the current plan", () => {
+    expect(html).toContain('id="plan-text"');
+    expect(html).toContain('id="plan-strategies"');
+    expect(html).toContain("A plan is an idea, not a rule.");
+  });
+
   it("does not emit common UTF-8 mojibake sequences", () => {
     expect(html).not.toMatch(
       /(?:Ãƒ|Ã‚|Ã¢â‚¬|Ã¢â‚¬â€œ|Ã¢â‚¬â€|Ã¢â‚¬Â¦|Ã¢â„¢)/,

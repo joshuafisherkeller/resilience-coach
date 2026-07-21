@@ -52,6 +52,19 @@ describe("profile tool handlers", () => {
     );
   });
 
+  it("keeps summary fields separate when a model omits semicolons", () => {
+    const parsed = parseInsight(
+      "Practiced: asking for a turn with one short sentence. Next-time plan: When waiting feels hard, I will ask for a turn. Support preference: pictures and words",
+    );
+    expect(parsed.practicedStrategies).toEqual([
+      "asking for a turn with one short sentence",
+    ]);
+    expect(parsed.nextTimePlan).toBe(
+      "When waiting feels hard, I will ask for a turn",
+    );
+    expect(parsed.supportPreference).toBe("pictures and words");
+  });
+
   it("locks the profile and prevents later updates", async () => {
     const repository = new MemoryProfileRepository();
     const handlers = new CoachToolHandlers(repository);

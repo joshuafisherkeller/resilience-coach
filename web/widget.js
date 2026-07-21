@@ -391,7 +391,9 @@
   }
 
   function setCoachMessage(message) {
-    const clean = String(message || "").trim();
+    const clean = String(message || "")
+      .replace(/([.!?])\s+([”"])/g, "$1$2")
+      .trim();
     if (!clean) return;
     byId("coach-message").textContent = clean;
     maybeSpeak(clean);
@@ -749,14 +751,19 @@
     state.summary = summary || null;
     showPanel("plan");
     byId("plan-heading").textContent = "You practiced one small hard moment.";
-    byId("plan-text").textContent = summary?.next_time_plan || state.selectedPlan || "When something feels hard, I will ask my grown-up what to try.";
-    tagList(byId("plan-strategies"), Array.isArray(summary?.practiced_strategies) ? summary.practiced_strategies : []);
+    byId("plan-text").textContent = state.selectedPlan || summary?.next_time_plan || "When something feels hard, I will ask my grown-up what to try.";
+    const currentStrategy = STRATEGIES[state.selectedStrategy]?.title;
+    tagList(byId("plan-strategies"), currentStrategy ? [currentStrategy] : []);
     maybeSpeak(closingMessage || byId("plan-text").textContent);
   }
 
   function renderGrownUpSummary(summary) {
-    byId("grown-up-strategies").textContent = Array.isArray(summary?.practiced_strategies) && summary.practiced_strategies.length > 0 ? summary.practiced_strategies.join(", ") : "None saved yet";
-    byId("grown-up-plan").textContent = summary?.next_time_plan || "No plan saved yet";
+    const currentStrategy = STRATEGIES[state.selectedStrategy]?.title;
+    const savedStrategies = Array.isArray(summary?.practiced_strategies)
+      ? summary.practiced_strategies.filter((value) => !/(?:next[- ]time plan|support preference)/i.test(String(value)))
+      : [];
+    byId("grown-up-strategies").textContent = currentStrategy || savedStrategies.slice(0, 3).join(", ") || "None saved yet";
+    byId("grown-up-plan").textContent = state.selectedPlan || summary?.next_time_plan || "No plan saved yet";
     byId("grown-up-preference").textContent = "Pictures and words";
     byId("grown-up-count").textContent = String(Number(summary?.session_count) || 0);
     byId("grown-up-status").hidden = true;
