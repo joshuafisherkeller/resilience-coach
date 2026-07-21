@@ -1,0 +1,21 @@
+# Keep preview uploads focused on the runtime application.
+# The original illustration masters and documentation remain versioned in GitHub.
+Research Brief/
+.agents/
+plugins/
+scripts/
+supabase/
+tests/
+vitest.config.ts
+
+assets/source/
+assets/contact-sheets/
+assets/art-direction/
+assets/qa/
+assets/README.md
+assets/PROVENANCE.md
+assets/manifest.json
+
+resilience_coach_codex_build_brief.md
+resilience_coach_product_addendum_v2.md
+resilience_coach_product_addendum_v3.md
