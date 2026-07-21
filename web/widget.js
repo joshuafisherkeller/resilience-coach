@@ -2,75 +2,305 @@
   "use strict";
 
   const config = window.__RESILIENCE_COACH_CONFIG__ || {};
-  const preferenceKey = "resilience-coach-display-preferences-v2";
-  const MODES = {
-    "two clear choices": {
-      slug: "two-clear-choices",
-      title: "Clear choices",
-      description: "I will show two things you can pick.",
-      icon: "choice",
-      choiceLimit: 2,
-      intro: "What felt hard today? Pick one idea, or use your own words.",
-      label: "Or say a few words",
-      placeholder: "Type here",
+  const preferenceKey = "resilience-coach-display-preferences-v4";
+  const assetBase = String(config.assetBase || "").replace(/\/$/, "");
+  const asset = (path) => `${assetBase}/${path}`;
+
+  const FEELINGS = {
+    frustrated: {
+      label: "Frustrated",
+      image: "emotions/frustrated.webp",
+      alt: "Child looks frustrated while working on a drawing.",
     },
-    "pictures and words": {
-      slug: "pictures-and-words",
-      title: "Pictures + words",
-      description: "Each idea has a picture and words.",
-      icon: "pictures",
-      choiceLimit: 3,
-      intro: "What felt hard today? Look at the pictures and pick one.",
-      label: "Or use your own words",
-      placeholder: "Type a few words",
+    disappointed: {
+      label: "Disappointed",
+      image: "emotions/disappointed.webp",
+      alt: "Child looks down with softened shoulders beside a toy.",
     },
-    "movement break": {
-      slug: "movement-break",
-      title: "Move my body",
-      description: "Try a safe small movement, then check your body.",
-      icon: "move",
-      choiceLimit: 2,
-      intro: "You can move first. Then pick one small hard moment.",
-      label: "Or tell me what happened",
-      placeholder: "Type a few words",
+    worried: {
+      label: "Worried",
+      image: "emotions/worried.webp",
+      alt: "Child holds hands close and looks worried beside a small plant.",
     },
-    "quiet pause": {
-      slug: "quiet-pause",
-      title: "Quiet pause",
-      description: "Use fewer words and take quiet time.",
-      icon: "pause",
-      choiceLimit: 2,
-      intro: "We can be quiet first. Start when you are ready.",
-      label: "Words are optional",
-      placeholder: "Type only if you want",
+    confused: {
+      label: "Confused",
+      image: "emotions/confused.webp",
+      alt: "Child pauses over a puzzle with a questioning expression.",
     },
-    "grown-up help": {
-      slug: "grown-up-help",
-      title: "Grown-up help",
-      description: "Use a short grown-up and child script together.",
-      icon: "grownup",
-      choiceLimit: 2,
-      intro: "Your grown-up can read the together script, then you can pick.",
-      label: "The child or grown-up can type",
-      placeholder: "A few words is enough",
+    unsure: {
+      label: "Unsure",
+      image: "emotions/unsure.webp",
+      alt: "Child looks between a ball and blocks with an unsure expression.",
     },
   };
-  const MOVEMENTS = {
-    shake: {
-      title: "Shake hands",
-      instruction: "Gently shake both hands. Keep your feet still.",
+
+  const BODY_CUES = {
+    "tight-hands": {
+      label: "Tight hands",
+      image: "body-cues/tight-hands.webp",
+      alt: "Child looks down at two gently tightened hands.",
     },
-    stretch: {
-      title: "Reach up",
-      instruction: "Reach both hands up. Slowly lower them to your sides.",
+    "hot-face": {
+      label: "Warm face",
+      image: "body-cues/hot-face.webp",
+      alt: "Child touches one warm cheek.",
     },
-    press: {
-      title: "Press hands",
-      instruction: "Put palms together. Press gently, then let go.",
+    "fast-heart": {
+      label: "Fast heartbeat",
+      image: "body-cues/fast-heart.webp",
+      alt: "Child rests a hand on the chest with soft pulse rings over the shirt.",
     },
-    march: {
-      title: "March in place",
-      instruction: "Take small, slow steps without moving across the room.",
+    "tight-tummy": {
+      label: "Tight tummy",
+      image: "body-cues/tight-tummy.webp",
+      alt: "Child rests both hands on the tummy with soft tension rings over clothing.",
+    },
+    "watery-eyes": {
+      label: "Watery eyes",
+      image: "body-cues/watery-eyes.webp",
+      alt: "Child has glossy watery eyes and a serious expression.",
+    },
+    "frozen-still": {
+      label: "Frozen still",
+      image: "body-cues/frozen-still.webp",
+      alt: "Child stands still beside a half-started block structure.",
+    },
+  };
+
+  const STRATEGIES = {
+    "ask-for-a-turn": {
+      title: "Ask for a turn",
+      description: "Practice one short sentence together.",
+      image: "strategies/ask-for-a-turn.webp",
+      alt: "Two children practice asking for a turn with a toy.",
+      kind: "words",
+      grownup: "Say the words slowly once. Let the child point or speak.",
+      childChoices: [
+        "Can I have a turn when you are done?",
+        "Can you help me wait for a turn?",
+      ],
+    },
+    "shake-hands-softly": {
+      title: "Soften tight hands",
+      description: "Shake hands gently, then let them rest.",
+      image: "strategies/shake-hands-softly.webp",
+      alt: "Seated child softly shakes two relaxed hands.",
+      kind: "movement",
+      grownup: "Try the small movement too. Stop if it feels uncomfortable.",
+      childChoices: ["I can shake softly with you.", "I want a different idea."],
+    },
+    "ask-grown-up-for-help": {
+      title: "Ask a grown-up for help",
+      description: "A grown-up can help with the next small step.",
+      image: "strategies/ask-grown-up-for-help.webp",
+      alt: "Child asks a nearby grown-up for help with a picture activity.",
+      kind: "words",
+      grownup: "Come to the child's level and offer two small choices.",
+      childChoices: ["Can you help me?", "Can we choose the next step together?"],
+    },
+    "try-one-smaller-step": {
+      title: "Try one smaller step",
+      description: "Pick one little part instead of the whole thing.",
+      image: "strategies/try-one-smaller-step.webp",
+      alt: "Child places one paper shape into an unfinished collage.",
+      kind: "action",
+      grownup: "Point out one manageable part without taking over.",
+      childChoices: ["I can try this one part.", "Please help me pick one part."],
+    },
+    "switch-and-try-something-else": {
+      title: "Switch and try something else",
+      description: "The first idea is not the only idea.",
+      image: "strategies/switch-and-try-something-else.webp",
+      alt: "Child moves a choice marker from one picture card to another.",
+      kind: "action",
+      grownup: "Show two possible next ideas and let the child choose.",
+      childChoices: ["I want to try a different way.", "Show me two ideas."],
+    },
+    "choose-what-happens-next": {
+      title: "Choose what happens next",
+      description: "The plan changed, but one next choice is still yours.",
+      image: "strategies/choose-what-happens-next.webp",
+      alt: "Child chooses between two simple activity pictures.",
+      kind: "choice",
+      grownup: "Offer two real choices that are both possible now.",
+      childChoices: ["I choose this next.", "Please show me two choices."],
+    },
+    "quiet-pause": {
+      title: "Take a quiet pause",
+      description: "Use fewer words for a short time.",
+      image: "strategies/quiet-pause.webp",
+      alt: "Child and grown-up sit quietly near a small timer.",
+      kind: "quiet",
+      grownup: "Stay nearby without asking questions. The child can finish early.",
+      childChoices: ["I want quiet with you nearby.", "I want a different idea."],
+    },
+  };
+
+  const SCENARIOS = {
+    sharing: {
+      id: "sharing",
+      childId: "demo-sharing",
+      label: "sharing and waiting",
+      title: "Sharing and waiting",
+      starter: "Someone else has the toy, and waiting for a turn feels hard.",
+      feelings: ["frustrated", "disappointed", "worried"],
+      bodyCues: ["tight-hands", "hot-face", "fast-heart"],
+      strategies: ["ask-for-a-turn", "shake-hands-softly", "ask-grown-up-for-help"],
+      story: [
+        {
+          image: "scenarios/sharing/sharing-01-someone-has-the-toy.webp",
+          alt: "One child watches while another child plays with a wooden toy.",
+          eyebrow: "First",
+          title: "Someone else has the toy.",
+          text: "Waiting can feel hard when you really want a turn.",
+        },
+        {
+          image: "scenarios/sharing/sharing-02-notice-body-clues.webp",
+          alt: "Child notices two tight hands while waiting for the toy.",
+          eyebrow: "Notice",
+          title: "The body gives clues.",
+          text: "Hands might feel tight. A face might feel warm. These clues help us notice the hard moment.",
+        },
+        {
+          image: "scenarios/sharing/sharing-03-pause-and-choose.webp",
+          alt: "Child pauses with a nearby grown-up while the other child keeps playing.",
+          eyebrow: "Choose",
+          title: "A small pause makes room for a choice.",
+          text: "The grown-up stays close. The child can soften their hands, ask for a turn, or ask for help.",
+        },
+        {
+          image: "scenarios/sharing/sharing-04-practice-turn-words.webp",
+          alt: "Children practice turn-taking words while a grown-up stays nearby.",
+          eyebrow: "Practice",
+          title: "They practice simple turn words.",
+          text: "Practicing does not make the other child hurry. It helps the child know what they can try.",
+        },
+        {
+          image: "scenarios/sharing/sharing-05-check-and-plan.webp",
+          alt: "Child and grown-up look at two simple picture choices while another child still has the toy.",
+          eyebrow: "Check and plan",
+          title: "There is a next step.",
+          text: "The toy may still be busy. The child can check their body and remember one plan for next time.",
+        },
+      ],
+      planFor(strategyId) {
+        const plans = {
+          "ask-for-a-turn": "When waiting for a turn feels hard, I will ask for a turn with one short sentence.",
+          "shake-hands-softly": "When waiting makes my hands feel tight, I will shake them softly and ask what I can do next.",
+          "ask-grown-up-for-help": "When waiting for a turn feels hard, I will ask my grown-up to help me choose a next step.",
+        };
+        return plans[strategyId] || plans["ask-grown-up-for-help"];
+      },
+    },
+    mistakes: {
+      id: "mistakes",
+      childId: "demo-mistakes",
+      label: "making a mistake",
+      title: "Making a mistake",
+      starter: "I noticed a mistake in something I was making, and I felt upset.",
+      feelings: ["frustrated", "disappointed", "confused"],
+      bodyCues: ["tight-hands", "watery-eyes", "tight-tummy"],
+      strategies: ["try-one-smaller-step", "switch-and-try-something-else", "ask-grown-up-for-help"],
+      story: [
+        {
+          image: "scenarios/mistakes/mistake-01-notice-the-mistake.webp",
+          alt: "Child notices a misplaced shape in a paper collage.",
+          eyebrow: "First",
+          title: "Something did not go as planned.",
+          text: "A mistake can feel big when you worked hard on something.",
+        },
+        {
+          image: "scenarios/mistakes/mistake-02-notice-body-clues.webp",
+          alt: "Child notices a tight tummy while looking at the collage.",
+          eyebrow: "Notice",
+          title: "The child notices body clues.",
+          text: "Hands, eyes, or the tummy might feel different. Noticing comes before fixing.",
+        },
+        {
+          image: "scenarios/mistakes/mistake-03-pause-and-find-small-step.webp",
+          alt: "Child and grown-up look closely at one small repair step.",
+          eyebrow: "Choose",
+          title: "They find one smaller step.",
+          text: "The whole project does not need to be solved at once.",
+        },
+        {
+          image: "scenarios/mistakes/mistake-04-try-or-repair.webp",
+          alt: "Child tries one repair while a grown-up stays nearby.",
+          eyebrow: "Practice",
+          title: "The child tries or asks for help.",
+          text: "Trying one part is practice, even when the result stays imperfect.",
+        },
+        {
+          image: "scenarios/mistakes/mistake-05-check-and-plan.webp",
+          alt: "Child and grown-up review a simple picture plan beside the collage.",
+          eyebrow: "Check and plan",
+          title: "They remember what to try next time.",
+          text: "A mistake can still feel disappointing. The plan gives the child a next action.",
+        },
+      ],
+      planFor(strategyId) {
+        const plans = {
+          "try-one-smaller-step": "When a mistake feels too big, I will choose one smaller part to try.",
+          "switch-and-try-something-else": "When my first idea is not helping yet, I will switch and try one different way.",
+          "ask-grown-up-for-help": "When a mistake feels too big, I will ask my grown-up to help me find one small step.",
+        };
+        return plans[strategyId] || plans["ask-grown-up-for-help"];
+      },
+    },
+    change: {
+      id: "change",
+      childId: "demo-change",
+      label: "a change of plans",
+      title: "A change of plans",
+      starter: "The plan changed because it started raining, and I did not like the new plan.",
+      feelings: ["disappointed", "worried", "unsure"],
+      bodyCues: ["tight-tummy", "frozen-still", "fast-heart"],
+      strategies: ["choose-what-happens-next", "quiet-pause", "ask-grown-up-for-help"],
+      story: [
+        {
+          image: "scenarios/change/change-01-hear-the-plan-changed.webp",
+          alt: "Child hears that outdoor play changed because rain is falling.",
+          eyebrow: "First",
+          title: "The expected plan changes.",
+          text: "The rain is not the child's choice. Feeling disappointed makes sense.",
+        },
+        {
+          image: "scenarios/change/change-02-notice-body-clues.webp",
+          alt: "Child hugs a ball and notices body clues beside a rainy window.",
+          eyebrow: "Notice",
+          title: "The child notices disappointment.",
+          text: "The tummy might feel tight. The body might become very still.",
+        },
+        {
+          image: "scenarios/change/change-03-what-can-i-choose.webp",
+          alt: "Grown-up shows two possible indoor activity pictures.",
+          eyebrow: "Choose",
+          title: "Some choices are still possible.",
+          text: "The child cannot choose the weather, but they can choose one thing that happens next.",
+        },
+        {
+          image: "scenarios/change/change-04-practice-the-new-plan.webp",
+          alt: "Child begins an indoor block activity with a grown-up nearby.",
+          eyebrow: "Practice",
+          title: "They begin the new plan together.",
+          text: "The child does not have to love the change before trying one next step.",
+        },
+        {
+          image: "scenarios/change/change-05-check-and-plan.webp",
+          alt: "Child and grown-up check a simple picture plan near indoor blocks.",
+          eyebrow: "Check and plan",
+          title: "They make a plan for another change.",
+          text: "The feeling can stay for a while. The next-time plan keeps one useful choice close.",
+        },
+      ],
+      planFor(strategyId) {
+        const plans = {
+          "choose-what-happens-next": "When a plan changes, I will choose one thing I can do next.",
+          "quiet-pause": "When a change feels like too much, I will take a short quiet pause with my grown-up nearby.",
+          "ask-grown-up-for-help": "When a plan changes, I will ask my grown-up to show me two possible next choices.",
+        };
+        return plans[strategyId] || plans["ask-grown-up-for-help"];
+      },
     },
   };
 
@@ -97,101 +327,58 @@
     childId: config.childId || "demo-sharing",
     serverOrigin: String(config.serverOrigin || "").replace(/\/$/, ""),
     sessionId: newSessionId(),
-    supportPreference: "two clear choices",
     displayPreferences: loadDisplayPreferences(),
+    scenario: null,
+    storyIndex: 0,
+    stage: "notice",
+    selectedFeeling: null,
+    selectedBodyCue: null,
+    selectedStrategy: null,
+    selectedPracticeWords: null,
+    selectedCheck: null,
+    selectedPlan: null,
     busy: false,
     locked: false,
-    started: false,
-    turnCount: 0,
-    previousPanel: "welcome",
     summary: null,
-    lastChoices: [],
+    currentPanel: "welcome",
+    previousPanel: "welcome",
     timerId: null,
-    timerKind: null,
-    timerRemaining: 0,
-    timerTotal: 0,
-    selectedMovement: null,
-    pauseSeconds: 20,
+    timerRemaining: 20,
+    requestVersion: 0,
   };
 
   const byId = (id) => document.getElementById(id);
-  const shell = byId("coach-shell");
-  const welcomePanel = byId("welcome-panel");
-  const practicePanel = byId("practice-panel");
-  const planCard = byId("plan-card");
-  const grownUpView = byId("grown-up-view");
-  const preferencesPanel = byId("preferences-panel");
-  const preferencesButton = byId("preferences-button");
-  const grownUpButton = byId("grown-up-button");
-  const startPractice = byId("start-practice");
-  const conversation = byId("conversation");
-  const starterChoices = byId("starter-choices");
-  const responseChoices = byId("response-choices");
-  const form = byId("coach-form");
-  const input = byId("child-message");
-  const toolDrawer = byId("tool-drawer");
-  const dontUnderstand = byId("dont-understand");
-  const dontKnow = byId("dont-know");
-  const endSession = byId("end-session");
-  const turnProgress = byId("turn-progress");
-  const loopSteps = Array.from(document.querySelectorAll("#loop-steps li"));
-  const readAloudToggle = byId("read-aloud-toggle");
-  const largeTextToggle = byId("large-text-toggle");
-  const reduceMotionToggle = byId("reduce-motion-toggle");
-  const modeBanner = byId("support-mode-banner");
-  const supportWorkspace = byId("support-workspace");
-  const pictureWorkspace = byId("picture-workspace");
-  const movementWorkspace = byId("movement-workspace");
-  const quietWorkspace = byId("quiet-workspace");
-  const grownupWorkspace = byId("grownup-workspace");
-  const movementGuide = byId("movement-guide");
-  const breathingOrb = byId("breathing-orb");
+  const panelIds = {
+    welcome: "welcome-panel",
+    scenario: "scenario-panel",
+    story: "story-panel",
+    practice: "practice-panel",
+    plan: "plan-card",
+    "grown-up": "grown-up-view",
+  };
 
-  function mode() {
-    return MODES[state.supportPreference] || MODES["two clear choices"];
-  }
-
-  function makeIcon(name, className) {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    if (className) svg.setAttribute("class", className);
-    svg.setAttribute("aria-hidden", "true");
-    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-    use.setAttribute("href", `#rc-icon-${name}`);
-    svg.appendChild(use);
-    return svg;
-  }
-
-  function setIcon(svg, name) {
-    const use = svg.querySelector("use");
-    if (use) use.setAttribute("href", `#rc-icon-${name}`);
-  }
-
-  function iconForChoice(text) {
-    const value = String(text).toLowerCase();
-    if (/grown|adult|help|tell|ask/.test(value)) return "grownup";
-    if (/breath|air|belly/.test(value)) return "breath";
-    if (/move|shake|march|stretch|body/.test(value)) return "move";
-    if (/quiet|pause|wait|still/.test(value)) return "pause";
-    if (/feel|sad|mad|upset|worried/.test(value)) return "feeling";
-    if (/again|try|step|plan/.test(value)) return "try";
-    if (/share|turn/.test(value)) return "sharing";
-    return "choice";
-  }
-
-  function applyDisplayPreferences() {
-    document.body.classList.toggle("large-text", Boolean(state.displayPreferences.largeText));
-    document.body.classList.toggle("reduce-motion", Boolean(state.displayPreferences.reduceMotion));
-    readAloudToggle.checked = Boolean(state.displayPreferences.readAloud);
-    largeTextToggle.checked = Boolean(state.displayPreferences.largeText);
-    reduceMotionToggle.checked = Boolean(state.displayPreferences.reduceMotion);
+  function showPanel(name) {
+    for (const [panelName, id] of Object.entries(panelIds)) {
+      byId(id).hidden = panelName !== name;
+    }
+    state.currentPanel = name;
+    window.scrollTo({ top: 0, behavior: state.displayPreferences.reduceMotion ? "auto" : "smooth" });
   }
 
   function saveDisplayPreferences() {
     try {
       window.localStorage.setItem(preferenceKey, JSON.stringify(state.displayPreferences));
     } catch (_error) {
-      // Display preferences are optional and stay on this device when available.
+      // Preferences are optional and remain on this device when storage is available.
     }
+  }
+
+  function applyDisplayPreferences() {
+    document.body.classList.toggle("large-text", Boolean(state.displayPreferences.largeText));
+    document.body.classList.toggle("reduce-motion", Boolean(state.displayPreferences.reduceMotion));
+    byId("read-aloud-toggle").checked = Boolean(state.displayPreferences.readAloud);
+    byId("large-text-toggle").checked = Boolean(state.displayPreferences.largeText);
+    byId("reduce-motion-toggle").checked = Boolean(state.displayPreferences.reduceMotion);
   }
 
   function maybeSpeak(text) {
@@ -203,216 +390,26 @@
     window.speechSynthesis.speak(utterance);
   }
 
-  function scrollBehavior() {
-    return state.displayPreferences.reduceMotion ? "auto" : "smooth";
-  }
-
-  function addMessage(text, who) {
-    const clean = String(text || "").trim();
+  function setCoachMessage(message) {
+    const clean = String(message || "").trim();
     if (!clean) return;
-    const wrapper = document.createElement("div");
-    wrapper.className = `message ${who === "child" ? "child-message" : "coach-message"}`;
-    const paragraph = document.createElement("p");
-    paragraph.textContent = clean;
-    wrapper.appendChild(paragraph);
-    conversation.appendChild(wrapper);
-    wrapper.scrollIntoView({ behavior: scrollBehavior(), block: "nearest" });
-    if (who !== "child") maybeSpeak(clean);
+    byId("coach-message").textContent = clean;
+    maybeSpeak(clean);
   }
 
   function setBusy(value) {
     state.busy = value;
-    for (const element of document.querySelectorAll("button, input")) {
-      element.disabled = value || state.locked;
-    }
-    document.body.classList.toggle("is-busy", value);
-  }
-
-  function updateGrownUpGuide() {
-    const steps = [
-      ["I am here. Pick one small hard moment.", "Point, tap a choice, or use a few words."],
-      ["Let us notice what your body is doing.", "Point to a feeling or name one body clue."],
-      ["We only need one small thing to try.", "Choose one of the two ideas."],
-      ["We can try it together, and we can stop.", "Try the small tool with your grown-up."],
-      ["Did it help a little, a lot, or not yet?", "Tap the answer that fits. Any answer is okay."],
-      ["Let us read your next-time plan together.", "Keep the plan, or ask to change it."],
-    ];
-    const selected = steps[Math.min(state.turnCount, steps.length - 1)];
-    byId("grownup-script").textContent = selected[0];
-    byId("child-script").textContent = selected[1];
-  }
-
-  function updateProgress(turnCount, sessionLimit) {
-    state.turnCount = Number(turnCount) || state.turnCount;
-    const limit = Number(sessionLimit) || 6;
-    turnProgress.textContent = `Step ${Math.min(state.turnCount + 1, limit)} of ${limit}`;
-    const activeIndex = Math.min(state.turnCount, loopSteps.length - 1);
-    loopSteps.forEach(function (step, index) {
-      step.classList.toggle("is-current", index === activeIndex);
-      step.classList.toggle("is-complete", index < activeIndex);
-    });
-    updateGrownUpGuide();
-  }
-
-  function renderChoices(choices) {
-    state.lastChoices = Array.isArray(choices) ? choices.slice(0, 3) : [];
-    responseChoices.replaceChildren();
-    for (const value of state.lastChoices.slice(0, mode().choiceLimit)) {
-      const choice = String(value).slice(0, 80);
-      const button = document.createElement("button");
-      button.type = "button";
-      button.dataset.message = choice;
-      if (state.supportPreference === "pictures and words") {
-        button.classList.add("picture-choice");
-        button.appendChild(makeIcon(iconForChoice(choice), "choice-icon"));
-        const label = document.createElement("span");
-        label.textContent = choice;
-        button.appendChild(label);
-      } else {
-        button.textContent = choice;
-      }
-      button.addEventListener("click", function () {
-        void sendMessage(button.dataset.message || "");
-      });
-      responseChoices.appendChild(button);
+    byId("coach-note").setAttribute("aria-busy", String(value));
+    byId("coach-note").classList.toggle("is-thinking", value);
+    if (value) byId("coach-message").textContent = "The coach is thinking about what you chose...";
+    for (const button of byId("activity-stage").querySelectorAll("button")) {
+      button.disabled = value || button.dataset.ready === "false";
     }
   }
 
   function stopTimer() {
     if (state.timerId !== null) window.clearInterval(state.timerId);
     state.timerId = null;
-    breathingOrb.classList.remove("is-breathing");
-    byId("start-movement-timer").textContent = "Start 20 seconds";
-    byId("start-quiet-timer").textContent = "Start quiet pause";
-  }
-
-  function timerElements(kind) {
-    return kind === "movement"
-      ? { ring: byId("movement-timer-ring"), text: byId("movement-timer-text"), button: byId("start-movement-timer") }
-      : { ring: byId("quiet-timer-ring"), text: byId("quiet-timer-text"), button: byId("start-quiet-timer") };
-  }
-
-  function paintTimer(kind) {
-    const elements = timerElements(kind);
-    const elapsed = Math.max(0, state.timerTotal - state.timerRemaining);
-    const progress = state.timerTotal ? Math.round((elapsed / state.timerTotal) * 100) : 0;
-    elements.ring.style.setProperty("--timer-progress", String(progress));
-    elements.text.textContent = String(state.timerRemaining);
-  }
-
-  function startTimer(kind, total) {
-    const elements = timerElements(kind);
-    if (state.timerId !== null && state.timerKind === kind) {
-      stopTimer();
-      elements.button.textContent = "Keep going";
-      return;
-    }
-    stopTimer();
-    if (state.timerRemaining <= 0 || state.timerKind !== kind || state.timerTotal !== total) {
-      state.timerRemaining = total;
-      state.timerTotal = total;
-    }
-    state.timerKind = kind;
-    elements.button.textContent = "Pause";
-    if (kind === "quiet") {
-      breathingOrb.classList.add("is-breathing");
-      byId("quiet-cue").textContent = "Breathe normally. You can finish anytime.";
-    }
-    paintTimer(kind);
-    state.timerId = window.setInterval(function () {
-      state.timerRemaining -= 1;
-      paintTimer(kind);
-      if (state.timerRemaining <= 0) {
-        stopTimer();
-        elements.button.textContent = "Done";
-        if (kind === "quiet") byId("quiet-cue").textContent = "The quiet pause is done. Notice what feels different.";
-      }
-    }, 1000);
-  }
-
-  function finishSupportActivity(kind) {
-    stopTimer();
-    if (state.turnCount === 0) {
-      const message = kind === "movement"
-        ? "Movement done. Now pick one small hard moment below."
-        : "Quiet pause done. When you are ready, pick one small hard moment below.";
-      const status = kind === "movement" ? byId("movement-instruction") : byId("quiet-cue");
-      status.textContent = message;
-      starterChoices.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
-      starterChoices.querySelector("button")?.focus();
-      return;
-    }
-    if (kind === "movement") {
-      const title = state.selectedMovement ? MOVEMENTS[state.selectedMovement].title : "a small movement";
-      void sendMessage(`I tried ${title.toLowerCase()} with my grown-up. Please help me check if it helped.`);
-    } else {
-      void sendMessage("I took a quiet pause with my grown-up. Please help me notice what feels different.");
-    }
-  }
-
-  function syncModeRadios(value) {
-    for (const radio of document.querySelectorAll('input[type="radio"][name^="support-"]')) {
-      radio.checked = radio.value === value;
-    }
-  }
-
-  function applySupportMode(value, announce) {
-    if (!MODES[value]) value = "two clear choices";
-    stopTimer();
-    state.timerKind = null;
-    state.supportPreference = value;
-    const active = mode();
-    syncModeRadios(value);
-    document.body.dataset.supportMode = active.slug;
-    setIcon(byId("active-support-icon"), active.icon);
-    byId("active-support-title").textContent = active.title;
-    byId("active-support-description").textContent = active.description;
-    byId("child-message-label").textContent = active.label;
-    input.placeholder = active.placeholder;
-
-    pictureWorkspace.hidden = value !== "pictures and words";
-    movementWorkspace.hidden = value !== "movement break";
-    quietWorkspace.hidden = value !== "quiet pause";
-    grownupWorkspace.hidden = value !== "grown-up help";
-    supportWorkspace.hidden = !["pictures and words", "movement break", "quiet pause", "grown-up help"].includes(value);
-    toolDrawer.hidden = ["movement break", "quiet pause", "grown-up help"].includes(value);
-    modeBanner.hidden = false;
-    renderChoices(state.lastChoices);
-    updateGrownUpGuide();
-
-    if (state.turnCount === 0) {
-      const firstCoachMessage = conversation.querySelector(".coach-message p");
-      if (firstCoachMessage) firstCoachMessage.textContent = active.intro;
-    }
-    if (announce) {
-      byId("support-change-status").textContent = `${active.title} is on. Your practice is still here.`;
-      maybeSpeak(`${active.title} is on.`);
-    }
-  }
-
-  function showLockedScreen() {
-    state.locked = true;
-    stopTimer();
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-    shell.replaceChildren();
-    const panel = document.createElement("section");
-    panel.className = "locked-panel";
-    const icon = document.createElement("div");
-    icon.className = "grown-up-icon";
-    icon.setAttribute("aria-hidden", "true");
-    icon.textContent = "!";
-    const heading = document.createElement("h1");
-    heading.textContent = "Let's find a safe grown-up now";
-    const belief = document.createElement("p");
-    belief.textContent = "Thank you for telling. This is important, and it is not your fault.";
-    const message = document.createElement("p");
-    message.textContent = "Please show this screen to a caregiver, teacher, counselor, or another trusted grown-up nearby.";
-    const note = document.createElement("p");
-    note.className = "locked-note";
-    note.textContent = "The chat is paused. A simulated demo alert was recorded.";
-    panel.append(icon, heading, belief, message, note);
-    shell.appendChild(panel);
-    document.title = "Find a safe grown-up - Resilience Coach";
   }
 
   function toolMeta(result) {
@@ -426,39 +423,24 @@
     if (metadata?.locked === true) showLockedScreen();
   }
 
-  function tagList(container, values) {
-    container.replaceChildren();
-    for (const value of values) {
-      const tag = document.createElement("span");
-      tag.textContent = value;
-      container.appendChild(tag);
-    }
+  function showLockedScreen() {
+    state.locked = true;
+    stopTimer();
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    const shell = byId("coach-shell");
+    shell.replaceChildren();
+    const panel = document.createElement("section");
+    panel.className = "locked-panel";
+    panel.innerHTML = `<div class="locked-symbol" aria-hidden="true">!</div><p class="eyebrow">The practice is paused</p><h1>Let's find a safe grown-up now.</h1><p>Thank you for telling. This is important, and it is not your fault.</p><p>Please show this screen to a caregiver, teacher, counselor, or another trusted grown-up nearby.</p><small>A simulated demo alert was recorded. No message was sent.</small>`;
+    shell.appendChild(panel);
+    document.title = "Find a safe grown-up - Resilience Coach";
   }
 
-  function renderPlan(summary, closingMessage) {
+  async function coachTurn(message, step, endSession) {
+    if (state.busy || state.locked || !state.scenario) return null;
+    const requestVersion = state.requestVersion;
     stopTimer();
-    state.summary = summary || null;
-    practicePanel.hidden = true;
-    welcomePanel.hidden = true;
-    grownUpView.hidden = true;
-    planCard.hidden = false;
-    byId("plan-heading").textContent = String(closingMessage || "Practice complete").slice(0, 180);
-    byId("plan-text").textContent = summary?.next_time_plan || "When something feels hard, I will pause and ask my grown-up what to try.";
-    tagList(byId("plan-strategies"), Array.isArray(summary?.practiced_strategies) ? summary.practiced_strategies : []);
-    planCard.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
-    maybeSpeak(byId("plan-text").textContent || "");
-  }
-
-  async function sendMessage(message, end) {
-    const clean = String(message || "").replace(/\s+/g, " ").trim();
-    if (!clean || state.busy || state.locked) return;
-    stopTimer();
-    starterChoices.hidden = true;
-    renderChoices([]);
-    addMessage(clean, "child");
-    input.value = "";
     setBusy(true);
-
     try {
       const response = await fetch(`${state.serverOrigin}/coach`, {
         method: "POST",
@@ -466,220 +448,445 @@
         body: JSON.stringify({
           child_id: state.childId,
           session_id: state.sessionId,
-          message: clean,
-          end_session: Boolean(end),
-          support_preference: state.supportPreference,
+          message: String(message).replace(/\s+/g, " ").trim(),
+          end_session: Boolean(endSession),
+          support_preference: "pictures and words",
+          scenario: state.scenario.id,
+          experience_step: step,
         }),
       });
       const result = await response.json();
+      if (requestVersion !== state.requestVersion) return null;
       if (result.locked) {
         showLockedScreen();
-        return;
+        return result;
       }
       if (!response.ok) throw new Error("coach unavailable");
-      updateProgress(result.turn_count, result.session_limit);
       if (result.ended) {
-        renderPlan(result.summary, result.message);
-        return;
+        renderCompletion(result.summary, result.message);
+        return result;
       }
-      addMessage(result.message, "coach");
-      renderChoices(result.choices);
+      setCoachMessage(result.message);
+      return result;
     } catch (_error) {
-      addMessage("A grown-up needs to help me connect. We can pause here.", "coach");
+      if (requestVersion === state.requestVersion) {
+        setCoachMessage("The coach connection needs a grown-up's help. The picture practice can pause here.");
+      }
+      return null;
     } finally {
-      if (!state.locked) setBusy(false);
+      if (!state.locked && requestVersion === state.requestVersion) setBusy(false);
     }
   }
 
-  function selectPanel(panelName) {
-    welcomePanel.hidden = panelName !== "welcome";
-    practicePanel.hidden = panelName !== "practice";
-    planCard.hidden = panelName !== "plan";
-    grownUpView.hidden = panelName !== "grown-up";
+  function resetJourney() {
+    stopTimer();
+    state.requestVersion += 1;
+    state.sessionId = newSessionId();
+    state.scenario = null;
+    state.storyIndex = 0;
+    state.stage = "notice";
+    state.selectedFeeling = null;
+    state.selectedBodyCue = null;
+    state.selectedStrategy = null;
+    state.selectedPracticeWords = null;
+    state.selectedCheck = null;
+    state.selectedPlan = null;
+    state.summary = null;
+    state.busy = false;
+    setCoachMessage("We can take this one small step at a time.");
   }
 
-  function currentPanel() {
-    if (!planCard.hidden) return "plan";
-    if (!practicePanel.hidden) return "practice";
-    return "welcome";
+  function selectScenario(scenarioId) {
+    const scenario = SCENARIOS[scenarioId];
+    if (!scenario) return;
+    resetJourney();
+    state.scenario = scenario;
+    state.childId = scenario.childId;
+    state.storyIndex = 0;
+    renderStory();
+    showPanel("story");
+    void coachTurn(scenario.starter, "start", false);
+  }
+
+  function renderStory() {
+    const scene = state.scenario?.story[state.storyIndex];
+    if (!scene) return;
+    byId("story-image").src = asset(scene.image);
+    byId("story-image").alt = scene.alt;
+    byId("story-eyebrow").textContent = scene.eyebrow;
+    byId("story-title").textContent = scene.title;
+    byId("story-text").textContent = scene.text;
+    byId("story-progress").textContent = `Picture ${state.storyIndex + 1} of ${state.scenario.story.length}`;
+    byId("story-previous").hidden = state.storyIndex === 0;
+    byId("story-next").textContent = state.storyIndex === state.scenario.story.length - 1 ? "Practice this moment" : "Next picture";
+  }
+
+  function pictureButton(id, item, group, selected) {
+    return `<button class="picture-choice${selected ? " is-selected" : ""}" type="button" data-group="${group}" data-value="${id}" aria-pressed="${selected ? "true" : "false"}"><img src="${asset(item.image)}" alt="${item.alt}" width="512" height="512"><span><strong>${item.label || item.title}</strong>${item.description ? `<small>${item.description}</small>` : ""}</span></button>`;
+  }
+
+  function updateStepper() {
+    const order = ["notice", "choose", "try", "check", "plan"];
+    const activeIndex = order.indexOf(state.stage);
+    for (const item of document.querySelectorAll(".practice-steps li")) {
+      const index = order.indexOf(item.dataset.step);
+      item.classList.toggle("is-current", index === activeIndex);
+      item.classList.toggle("is-complete", index < activeIndex);
+    }
+  }
+
+  function stageHeader(eyebrow, title, text) {
+    return `<div class="stage-heading"><p class="eyebrow">${eyebrow}</p><h1>${title}</h1><p>${text}</p></div>`;
+  }
+
+  function renderNoticeStage() {
+    const scenario = state.scenario;
+    const feelings = scenario.feelings.map((id) => pictureButton(id, FEELINGS[id], "feeling", state.selectedFeeling === id)).join("");
+    const bodyCues = scenario.bodyCues.map((id) => pictureButton(id, BODY_CUES[id], "body", state.selectedBodyCue === id)).join("");
+    return `${stageHeader("Notice", "What might this child notice?", "Pick one feeling and one body clue. More than one answer could fit.")}
+      <div class="notice-layout">
+        <figure class="stage-story-image"><img src="${asset(scenario.story[1].image)}" alt="${scenario.story[1].alt}" width="800" height="600"></figure>
+        <div class="notice-choices">
+          <fieldset><legend>A feeling</legend><div class="picture-grid three">${feelings}</div></fieldset>
+          <fieldset><legend>A body clue</legend><div class="picture-grid three">${bodyCues}</div></fieldset>
+        </div>
+      </div>
+      <button id="stage-continue" class="primary-button stage-continue" type="button" data-ready="${Boolean(state.selectedFeeling && state.selectedBodyCue)}" ${state.selectedFeeling && state.selectedBodyCue ? "" : "disabled"}>Choose one thing to try</button>`;
+  }
+
+  function renderChooseStage() {
+    const cards = state.scenario.strategies.map((id) => pictureButton(id, STRATEGIES[id], "strategy", state.selectedStrategy === id)).join("");
+    const feeling = FEELINGS[state.selectedFeeling]?.label.toLowerCase() || "hard";
+    const body = BODY_CUES[state.selectedBodyCue]?.label.toLowerCase() || "different";
+    return `${stageHeader("Choose", "Pick one small thing to try.", `The child might feel ${feeling} and notice ${body}. We only need one idea.`)}
+      <div class="picture-grid strategy-grid">${cards}</div>
+      <p class="choice-reassurance">If it does not help yet, that is useful information. We can switch.</p>
+      <button id="stage-continue" class="primary-button stage-continue" type="button" data-ready="${Boolean(state.selectedStrategy)}" ${state.selectedStrategy ? "" : "disabled"}>Practice this together</button>`;
+  }
+
+  function renderTryStage() {
+    const strategy = STRATEGIES[state.selectedStrategy];
+    if (!strategy) {
+      state.stage = "choose";
+      return renderChooseStage();
+    }
+    const childChoices = strategy.childChoices.map((choice) => `<button class="word-choice${state.selectedPracticeWords === choice ? " is-selected" : ""}" type="button" data-practice-words="${choice}" aria-pressed="${state.selectedPracticeWords === choice}">${choice}</button>`).join("");
+    const activity = strategy.kind === "quiet"
+      ? `<div class="guided-activity quiet-activity"><div class="timer-disc"><span id="timer-number">${state.timerRemaining}</span><small>seconds</small></div><div><h3>A short quiet pause</h3><p id="timer-cue">The grown-up stays nearby. Finish early whenever you want.</p><button id="timer-button" class="quiet-button" type="button">Start 20 seconds</button></div></div>`
+      : strategy.kind === "movement"
+        ? `<div class="guided-activity movement-activity"><div class="movement-mark" aria-hidden="true">~</div><div><h3>Small, soft movement</h3><p>Shake both hands gently. Let them rest. Stop if it feels uncomfortable.</p></div></div>`
+        : "";
+    return `${stageHeader("Practice", `Try: ${strategy.title}`, "The goal is to practice, not to make every hard feeling disappear.")}
+      <div class="practice-together-card">
+        <figure><img src="${asset(strategy.image)}" alt="${strategy.alt}" width="512" height="512"></figure>
+        <div class="practice-script">
+          <div class="script-card grownup-script"><span>Grown-up can</span><p>${strategy.grownup}</p></div>
+          <fieldset><legend>Child can point to or say</legend><div class="word-choice-grid">${childChoices}</div></fieldset>
+          ${activity}
+          <button id="choose-another-strategy" class="quiet-button" type="button">Choose a different idea</button>
+        </div>
+      </div>
+      <button id="stage-continue" class="primary-button stage-continue" type="button" data-ready="${Boolean(state.selectedPracticeWords)}" ${state.selectedPracticeWords ? "" : "disabled"}>We practiced it</button>`;
+  }
+
+  function renderCheckStage() {
+    const choices = [
+      { id: "helped-a-little", label: "Helped a little", image: "emotions/calm-ready.webp", alt: "Child looks steady and ready beside three blocks." },
+      { id: "not-yet", label: "Not yet", image: "emotions/unsure.webp", alt: "Child looks unsure while considering two possible activities." },
+      { id: "grown-up-help", label: "I want grown-up help", image: "strategies/ask-grown-up-for-help.webp", alt: "Child asks a nearby grown-up for help." },
+    ];
+    const cards = choices.map((item) => pictureButton(item.id, item, "check", state.selectedCheck === item.id)).join("");
+    return `${stageHeader("Check", "What do you notice now?", "Any answer is okay. A strategy can help a little, a lot, or not yet.")}
+      <div class="picture-grid check-grid">${cards}</div>
+      <button id="stage-continue" class="primary-button stage-continue" type="button" data-ready="${Boolean(state.selectedCheck)}" ${state.selectedCheck ? "" : "disabled"}>Make my next-time plan</button>`;
+  }
+
+  function renderPlanStage() {
+    const mainPlan = state.scenario.planFor(state.selectedStrategy);
+    const grownupPlan = state.scenario.planFor("ask-grown-up-for-help");
+    const plans = Array.from(new Set([mainPlan, grownupPlan]));
+    if (!state.selectedPlan) state.selectedPlan = plans[0];
+    const planButtons = plans.map((plan) => `<button class="plan-choice${state.selectedPlan === plan ? " is-selected" : ""}" type="button" data-plan="${plan}" aria-pressed="${state.selectedPlan === plan}"><span aria-hidden="true">When</span><strong>${plan}</strong></button>`).join("");
+    const checkText = state.selectedCheck === "not-yet" ? "The first idea did not help yet. The plan can still keep one useful next step." : "The plan keeps one small idea ready for another hard moment.";
+    return `${stageHeader("Plan", "Which plan should we remember?", checkText)}
+      <div class="plan-builder">
+        <img src="${asset("completion/my-next-time-plan.webp")}" alt="Child and grown-up look together at a simple picture plan." width="800" height="600">
+        <div class="plan-choice-list">${planButtons}</div>
+      </div>
+      <p class="choice-reassurance">This is a practice idea, not a rule. You can change it next time.</p>
+      <button id="stage-continue" class="primary-button stage-continue" type="button">Save this plan and finish</button>`;
+  }
+
+  function renderStage() {
+    stopTimer();
+    state.timerRemaining = 20;
+    updateStepper();
+    const stage = byId("activity-stage");
+    if (state.stage === "notice") stage.innerHTML = renderNoticeStage();
+    if (state.stage === "choose") stage.innerHTML = renderChooseStage();
+    if (state.stage === "try") stage.innerHTML = renderTryStage();
+    if (state.stage === "check") stage.innerHTML = renderCheckStage();
+    if (state.stage === "plan") stage.innerHTML = renderPlanStage();
+    wireStageEvents();
+    if (state.busy) setBusy(true);
+  }
+
+  function selectPictureChoice(button) {
+    const group = button.dataset.group;
+    const value = button.dataset.value;
+    if (group === "feeling") state.selectedFeeling = value;
+    if (group === "body") state.selectedBodyCue = value;
+    if (group === "strategy") {
+      state.selectedStrategy = value;
+      state.selectedPracticeWords = null;
+      state.selectedPlan = null;
+    }
+    if (group === "check") state.selectedCheck = value;
+    renderStage();
+  }
+
+  function advanceStage() {
+    if (state.busy) return;
+    if (state.stage === "notice") {
+      const feeling = FEELINGS[state.selectedFeeling]?.label || "unsure";
+      const bodyCue = BODY_CUES[state.selectedBodyCue]?.label || "a body clue";
+      state.stage = "choose";
+      renderStage();
+      void coachTurn(`In the ${state.scenario.label} picture, I picked ${feeling} and ${bodyCue}.`, "notice", false);
+      return;
+    }
+    if (state.stage === "choose") {
+      const strategy = STRATEGIES[state.selectedStrategy];
+      state.stage = "try";
+      renderStage();
+      void coachTurn(`For this ${state.scenario.label} practice, I chose ${strategy.title}.`, "choose", false);
+      return;
+    }
+    if (state.stage === "try") {
+      const strategy = STRATEGIES[state.selectedStrategy];
+      state.stage = "check";
+      renderStage();
+      void coachTurn(`We practiced ${strategy.title}. The child chose: ${state.selectedPracticeWords}`, "try", false);
+      return;
+    }
+    if (state.stage === "check") {
+      const labels = { "helped-a-little": "It helped a little.", "not-yet": "It did not help yet.", "grown-up-help": "I want my grown-up's help." };
+      state.stage = "plan";
+      renderStage();
+      void coachTurn(labels[state.selectedCheck] || "I checked what changed.", "check", false);
+      return;
+    }
+    if (state.stage === "plan") {
+      void coachTurn(`My next-time plan is: ${state.selectedPlan}`, "plan", true);
+    }
+  }
+
+  function startGuidedTimer() {
+    if (state.timerId !== null) {
+      stopTimer();
+      byId("timer-button").textContent = "Keep going";
+      return;
+    }
+    if (state.timerRemaining <= 0) state.timerRemaining = 20;
+    byId("timer-button").textContent = "Pause";
+    byId("timer-cue").textContent = "Quiet is enough. No need to talk.";
+    state.timerId = window.setInterval(function () {
+      state.timerRemaining -= 1;
+      const number = byId("timer-number");
+      if (number) number.textContent = String(state.timerRemaining);
+      if (state.timerRemaining <= 0) {
+        stopTimer();
+        byId("timer-button").textContent = "Quiet pause finished";
+        byId("timer-cue").textContent = "Now notice what feels the same or different.";
+      }
+    }, 1000);
+  }
+
+  function wireStageEvents() {
+    for (const button of byId("activity-stage").querySelectorAll("[data-group]")) {
+      button.addEventListener("click", () => selectPictureChoice(button));
+    }
+    for (const button of byId("activity-stage").querySelectorAll("[data-practice-words]")) {
+      button.addEventListener("click", function () {
+        const value = button.dataset.practiceWords;
+        if (/different idea/i.test(value)) {
+          state.stage = "choose";
+          state.selectedStrategy = null;
+          state.selectedPracticeWords = null;
+        } else {
+          state.selectedPracticeWords = value;
+        }
+        renderStage();
+      });
+    }
+    for (const button of byId("activity-stage").querySelectorAll("[data-plan]")) {
+      button.addEventListener("click", function () {
+        state.selectedPlan = button.dataset.plan;
+        renderStage();
+      });
+    }
+    byId("stage-continue")?.addEventListener("click", advanceStage);
+    byId("choose-another-strategy")?.addEventListener("click", function () {
+      state.stage = "choose";
+      state.selectedStrategy = null;
+      state.selectedPracticeWords = null;
+      renderStage();
+    });
+    byId("timer-button")?.addEventListener("click", startGuidedTimer);
+  }
+
+  function tagList(container, values) {
+    container.replaceChildren();
+    for (const value of values || []) {
+      const tag = document.createElement("span");
+      tag.textContent = value;
+      container.appendChild(tag);
+    }
+  }
+
+  function renderCompletion(summary, closingMessage) {
+    stopTimer();
+    state.summary = summary || null;
+    showPanel("plan");
+    byId("plan-heading").textContent = "You practiced one small hard moment.";
+    byId("plan-text").textContent = summary?.next_time_plan || state.selectedPlan || "When something feels hard, I will ask my grown-up what to try.";
+    tagList(byId("plan-strategies"), Array.isArray(summary?.practiced_strategies) ? summary.practiced_strategies : []);
+    maybeSpeak(closingMessage || byId("plan-text").textContent);
   }
 
   function renderGrownUpSummary(summary) {
-    const status = byId("grown-up-status");
-    const details = byId("grown-up-summary");
     byId("grown-up-strategies").textContent = Array.isArray(summary?.practiced_strategies) && summary.practiced_strategies.length > 0 ? summary.practiced_strategies.join(", ") : "None saved yet";
     byId("grown-up-plan").textContent = summary?.next_time_plan || "No plan saved yet";
-    byId("grown-up-preference").textContent = summary?.support_preference || state.supportPreference;
+    byId("grown-up-preference").textContent = "Pictures and words";
     byId("grown-up-count").textContent = String(Number(summary?.session_count) || 0);
-    status.hidden = true;
-    details.hidden = false;
+    byId("grown-up-status").hidden = true;
+    byId("grown-up-summary").hidden = false;
   }
 
   async function openGrownUpView() {
     if (state.locked) return;
-    stopTimer();
-    state.previousPanel = currentPanel();
-    selectPanel("grown-up");
-    const status = byId("grown-up-status");
-    const details = byId("grown-up-summary");
-    status.hidden = false;
-    status.textContent = "Loading the synthetic practice summary...";
-    details.hidden = true;
-    grownUpView.focus();
+    state.previousPanel = state.currentPanel;
+    showPanel("grown-up");
+    byId("grown-up-status").hidden = false;
+    byId("grown-up-status").textContent = "Loading the synthetic practice summary...";
+    byId("grown-up-summary").hidden = true;
+    byId("grown-up-view").focus();
     if (state.summary) renderGrownUpSummary(state.summary);
     try {
       const response = await fetch(`${state.serverOrigin}/demo/profile/${encodeURIComponent(state.childId)}`, { headers: { accept: "application/json" } });
       if (!response.ok) throw new Error("summary unavailable");
       renderGrownUpSummary(await response.json());
     } catch (_error) {
-      if (!state.summary) {
-        status.hidden = false;
-        status.textContent = "The grown-up summary is taking a short pause.";
-      }
+      if (!state.summary) byId("grown-up-status").textContent = "The grown-up summary is taking a short pause.";
     }
   }
 
   function closeGrownUpView() {
-    selectPanel(state.previousPanel || (state.started ? "practice" : "welcome"));
-    grownUpButton.focus();
+    showPanel(state.previousPanel || "welcome");
+    byId("grown-up-button").focus();
   }
 
   function openPreferences() {
-    preferencesPanel.hidden = false;
-    preferencesButton.setAttribute("aria-expanded", "true");
-    syncModeRadios(state.supportPreference);
-    preferencesPanel.querySelector("input")?.focus();
+    byId("preferences-panel").hidden = false;
+    byId("preferences-button").setAttribute("aria-expanded", "true");
+    byId("preferences-panel").querySelector("input")?.focus();
   }
 
   function closePreferences() {
-    preferencesPanel.hidden = true;
-    preferencesButton.setAttribute("aria-expanded", "false");
-    preferencesButton.focus();
+    byId("preferences-panel").hidden = true;
+    byId("preferences-button").setAttribute("aria-expanded", "false");
+    byId("preferences-button").focus();
   }
 
-  startPractice.addEventListener("click", function () {
-    const selected = document.querySelector('input[name="support-welcome"]:checked');
-    applySupportMode(selected?.value || "two clear choices", false);
-    state.started = true;
-    selectPanel("practice");
-    const matchingStarter = starterChoices.querySelector(`[data-child-id="${state.childId}"]`);
-    if (matchingStarter) matchingStarter.classList.add("is-suggested");
-    if (state.supportPreference === "movement break") {
-      movementWorkspace.querySelector("button")?.focus();
-    } else if (state.supportPreference === "quiet pause") {
-      byId("start-quiet-timer").focus();
-    } else if (state.supportPreference === "grown-up help") {
-      byId("grownup-two-choices").focus();
-    } else {
-      matchingStarter?.focus();
+  byId("begin-button").addEventListener("click", () => showPanel("scenario"));
+  byId("scenario-back").addEventListener("click", () => showPanel("welcome"));
+  for (const button of document.querySelectorAll("[data-scenario]")) {
+    button.addEventListener("click", () => selectScenario(button.dataset.scenario));
+  }
+  byId("story-exit").addEventListener("click", function () {
+    resetJourney();
+    showPanel("scenario");
+  });
+  byId("story-previous").addEventListener("click", function () {
+    state.storyIndex = Math.max(0, state.storyIndex - 1);
+    renderStory();
+  });
+  byId("story-next").addEventListener("click", function () {
+    if (state.storyIndex < state.scenario.story.length - 1) {
+      state.storyIndex += 1;
+      renderStory();
+      return;
+    }
+    state.stage = "notice";
+    renderStage();
+    showPanel("practice");
+  });
+
+  byId("grown-up-help").addEventListener("click", function () {
+    setCoachMessage("Your grown-up can say: I am here. We only need one small next step.");
+    if (state.stage === "choose" && state.scenario.strategies.includes("ask-grown-up-for-help")) {
+      state.selectedStrategy = "ask-grown-up-for-help";
+      renderStage();
     }
   });
-
-  for (const button of starterChoices.querySelectorAll("button")) {
-    button.addEventListener("click", function () {
-      if (state.turnCount === 0 && button.dataset.childId) state.childId = button.dataset.childId;
-      void sendMessage(button.dataset.starter || button.textContent || "");
-    });
-  }
-
-  for (const button of document.querySelectorAll("[data-tool]")) {
-    button.addEventListener("click", function () {
-      void sendMessage(button.dataset.tool || button.textContent || "");
-    });
-  }
-
-  for (const button of document.querySelectorAll("[data-movement]")) {
-    button.addEventListener("click", function () {
-      state.selectedMovement = button.dataset.movement;
-      const selected = MOVEMENTS[state.selectedMovement];
-      for (const option of document.querySelectorAll("[data-movement]")) option.classList.toggle("is-selected", option === button);
-      movementGuide.hidden = false;
-      byId("movement-title").textContent = selected.title;
-      byId("movement-instruction").textContent = selected.instruction;
-      state.timerRemaining = 20;
-      state.timerTotal = 20;
-      paintTimer("movement");
-      byId("start-movement-timer").focus();
-    });
-  }
-
-  for (const button of document.querySelectorAll("[data-pause-seconds]")) {
-    button.addEventListener("click", function () {
-      stopTimer();
-      state.pauseSeconds = Number(button.dataset.pauseSeconds) || 20;
-      state.timerRemaining = state.pauseSeconds;
-      state.timerTotal = state.pauseSeconds;
-      for (const option of document.querySelectorAll("[data-pause-seconds]")) option.classList.toggle("is-selected", option === button);
-      paintTimer("quiet");
-      byId("quiet-cue").textContent = "Get comfortable. Start when you are ready.";
-    });
-  }
-
-  byId("start-movement-timer").addEventListener("click", function () { startTimer("movement", 20); });
-  byId("finish-movement").addEventListener("click", function () { finishSupportActivity("movement"); });
-  byId("start-quiet-timer").addEventListener("click", function () { startTimer("quiet", state.pauseSeconds); });
-  byId("finish-quiet").addEventListener("click", function () { finishSupportActivity("quiet"); });
-
-  byId("grownup-two-choices").addEventListener("click", function () {
-    if (state.turnCount === 0) {
-      byId("grownup-together-status").textContent = "Choose one hard-moment card below.";
-      starterChoices.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
-      starterChoices.querySelector("button")?.focus();
-    } else {
-      void sendMessage("Please give the child and grown-up exactly two short choices for the next step.");
-    }
+  byId("stop-practice").addEventListener("click", function () {
+    if (state.busy || !state.scenario) return;
+    state.selectedPlan = state.selectedPlan || state.scenario.planFor(state.selectedStrategy || "ask-grown-up-for-help");
+    void coachTurn(`I am ready to stop. My plan is: ${state.selectedPlan}`, "plan", true);
   });
-  byId("grownup-read-together").addEventListener("click", function () {
-    byId("grownup-together-status").textContent = "You read it together. Take your time with the next choice.";
-    responseChoices.querySelector("button")?.focus();
-  });
-
-  form.addEventListener("submit", function (event) {
+  byId("own-words-form").addEventListener("submit", function (event) {
     event.preventDefault();
-    void sendMessage(input.value);
-  });
-  dontUnderstand.addEventListener("click", function () { void sendMessage("I don't understand. Please make it simpler."); });
-  dontKnow.addEventListener("click", function () { void sendMessage("I don't know."); });
-  endSession.addEventListener("click", function () { void sendMessage("I am ready to make my next-time plan and stop.", true); });
-
-  preferencesButton.addEventListener("click", function () {
-    if (preferencesPanel.hidden) openPreferences(); else closePreferences();
-  });
-  byId("change-support-inline").addEventListener("click", openPreferences);
-  byId("close-preferences").addEventListener("click", closePreferences);
-  byId("apply-support-mode").addEventListener("click", function () {
-    const selected = document.querySelector('input[name="support-settings"]:checked');
-    applySupportMode(selected?.value || state.supportPreference, true);
-    if (state.started) {
-      window.setTimeout(function () {
-        preferencesPanel.hidden = true;
-        preferencesButton.setAttribute("aria-expanded", "false");
-        modeBanner.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
-        modeBanner.focus?.();
-      }, 450);
+    const input = byId("own-words-input");
+    const message = String(input.value || "").replace(/\s+/g, " ").trim();
+    if (!message || state.busy) return;
+    input.value = "";
+    const currentStage = state.stage;
+    if (currentStage === "notice") {
+      state.selectedFeeling = state.selectedFeeling || state.scenario.feelings[0];
+      state.selectedBodyCue = state.selectedBodyCue || state.scenario.bodyCues[0];
+      state.stage = "choose";
+    } else if (currentStage === "choose") {
+      state.selectedStrategy = state.selectedStrategy || state.scenario.strategies[0];
+      state.stage = "try";
+    } else if (currentStage === "try") {
+      state.selectedPracticeWords = state.selectedPracticeWords || STRATEGIES[state.selectedStrategy].childChoices[0];
+      state.stage = "check";
+    } else if (currentStage === "check") {
+      state.selectedCheck = state.selectedCheck || "not-yet";
+      state.stage = "plan";
+    } else {
+      state.selectedPlan = message;
     }
+    renderStage();
+    void coachTurn(message, currentStage, currentStage === "plan");
   });
 
-  readAloudToggle.addEventListener("change", function () {
-    state.displayPreferences.readAloud = readAloudToggle.checked;
-    saveDisplayPreferences();
-    if (readAloudToggle.checked) maybeSpeak("Read aloud is on.");
+  byId("preferences-button").addEventListener("click", function () {
+    if (byId("preferences-panel").hidden) openPreferences(); else closePreferences();
   });
-  largeTextToggle.addEventListener("change", function () {
-    state.displayPreferences.largeText = largeTextToggle.checked;
+  byId("close-preferences").addEventListener("click", closePreferences);
+  byId("read-aloud-toggle").addEventListener("change", function () {
+    state.displayPreferences.readAloud = byId("read-aloud-toggle").checked;
+    saveDisplayPreferences();
+    if (state.displayPreferences.readAloud) maybeSpeak("Read aloud is on.");
+  });
+  byId("large-text-toggle").addEventListener("change", function () {
+    state.displayPreferences.largeText = byId("large-text-toggle").checked;
     applyDisplayPreferences();
     saveDisplayPreferences();
   });
-  reduceMotionToggle.addEventListener("change", function () {
-    state.displayPreferences.reduceMotion = reduceMotionToggle.checked;
+  byId("reduce-motion-toggle").addEventListener("change", function () {
+    state.displayPreferences.reduceMotion = byId("reduce-motion-toggle").checked;
     applyDisplayPreferences();
     saveDisplayPreferences();
   });
-
-  grownUpButton.addEventListener("click", function () { void openGrownUpView(); });
-  byId("show-grown-up-summary").addEventListener("click", function () { void openGrownUpView(); });
+  byId("grown-up-button").addEventListener("click", () => void openGrownUpView());
+  byId("show-grown-up-summary").addEventListener("click", () => void openGrownUpView());
   byId("close-grown-up").addEventListener("click", closeGrownUpView);
-  byId("new-practice").addEventListener("click", function () { window.location.assign(`${state.serverOrigin}/demo`); });
+  byId("new-practice").addEventListener("click", function () {
+    resetJourney();
+    showPanel("scenario");
+  });
 
   window.addEventListener("message", function (event) {
     if (event.source !== window.parent) return;
@@ -693,7 +900,6 @@
   }, { passive: true });
 
   applyDisplayPreferences();
-  applySupportMode("two clear choices", false);
   applyToolResult(window.openai?.toolOutput);
   if (window.location.hash === "#grown-up-view") void openGrownUpView();
 })();

@@ -19,28 +19,28 @@ Try the live synthetic demo: <https://resilience-coach.vercel.app/>
 
 ## Product experience
 
-The old Sharing, Mistakes, and Change demos are now starter contexts inside one
-feature: **Talk it through**. A grown-up confirms they are nearby, the child
-chooses how they prefer to be supported, and the app guides one bounded loop:
+Resilience Coach is now a picture-led guided practice rather than an open-ended
+chat or a collection of support modes. A child and nearby grown-up first choose
+one of three meaningfully different ordinary moments:
 
-**Notice → Name → Choose → Try → Check → Switch or Share**
+- **Sharing and waiting** teaches noticing body clues, softening tight hands,
+  practicing turn words, and asking a grown-up for help.
+- **Making a mistake** teaches finding one smaller repair step, switching an
+  approach, and asking for help without treating imperfection as failure.
+- **A change of plans** teaches noticing disappointment, taking a short quiet
+  pause, and choosing what can still happen next.
 
-Each practice lasts no more than six child turns—about three to five minutes.
-The child can use two or three tappable choices, type a few words, say “I don't
-know,” ask for simpler words, try a breath/movement/quiet/grown-up tool, or stop
-at any time. The session ends with a visual **My next-time plan** card.
+Each situation begins with a five-panel visual story and then follows one
+bounded six-turn journey:
 
-The five support selections are functional modes inside that shared loop:
+**Choose a moment → Notice → Choose a strategy → Practice together → Check → Plan**
 
-- **Clear choices** always displays exactly two model choices.
-- **Pictures + words** pairs starter and model choices with inline visual cues.
-- **Move my body** provides four bounded movements and a 20-second timer.
-- **Quiet pause** provides silent 20- or 40-second pauses with no audio by
-  default.
-- **Grown-up help** provides alternating adult and child script cards.
-
-Support modes can be changed during practice without restarting or losing the
-current conversation.
+Every feeling, body clue, strategy, adult-child practice, and completion state
+uses a literal illustration with adjacent accessible text. Pictures are the
+default support throughout, not an optional mode. Movement, quiet, and grown-up
+help appear contextually only when they fit the chosen situation. The child can
+point or tap, use a few made-up words, ask for adult help, switch ideas, or stop.
+Each session ends with a visual **My next-time plan** card.
 
 The **Grown-up view** contains only:
 
@@ -53,8 +53,8 @@ It does not show or store a transcript. It also gives the adult a
 process-praise prompt rather than a score, streak, label, or diagnosis.
 
 Accessibility options stay locally in the browser and include read-aloud,
-larger text, reduced motion, pictures plus words, movement, quiet pause, and
-grown-up help. The app personalizes the form of support, never a diagnosis.
+larger text, and reduced motion. Picture supports remain on for every child.
+The app personalizes the form of support, never a diagnosis.
 
 ## How it works
 
@@ -80,11 +80,32 @@ short-lived conversation history remains only in server memory and expires.
 The supplied [`resilience_coach_system_prompt.md`](./resilience_coach_system_prompt.md)
 is preserved byte-for-byte as the Build Week audit artifact. The runtime loads
 it together with the versioned
-[`resilience_coach_product_addendum_v3.md`](./resilience_coach_product_addendum_v3.md),
-which adds the bounded loop, AI transparency, deterministic support-mode
-contracts, neutral memory format, and obvious ending without silently
-rewriting the original. The v2 addendum remains in the repository as version
-history.
+[`resilience_coach_product_addendum_v4.md`](./resilience_coach_product_addendum_v4.md),
+which tells GPT-5.6 how to provide short adaptive feedback inside the authored
+illustrated journey while the interface owns the stable picture choices. The
+v2 and v3 addenda remain in the repository as version history.
+
+## Original illustration system
+
+The `assets` directory contains an original, Build Week-created visual system:
+
+- 52 production illustrations with matching optimized web derivatives;
+- three five-panel situation stories and three situation cards;
+- emotion, body-clue, strategy, grown-up co-practice, welcome, and completion
+  art;
+- consistent character, palette, composition, safety, and accessibility rules;
+- alt text and integration metadata for every production image; and
+- contact sheets, SHA-256 hashes, provenance, and QA notes.
+
+GPT-5.6 acted as art director and production orchestrator: it translated the
+approved product direction and research into the visual system, asset list,
+generation prompts, continuity rules, review criteria, file organization, web
+optimization, manifest, and provenance record. The pixels were rendered by the
+OpenAI built-in image-generation tool; its underlying rendering-model name was
+not surfaced, so the project makes no more specific model claim. See
+[`assets/PROVENANCE.md`](./assets/PROVENANCE.md),
+[`assets/manifest.json`](./assets/manifest.json), and
+[`assets/qa/validation-report.md`](./assets/qa/validation-report.md).
 
 ## Exact MCP surface
 
@@ -255,10 +276,12 @@ public Git history records the boundary:
 
 Joshua made the product and pedagogical decisions: target ages, adult-guided
 scope, synthetic-data boundary, fixed prompt, Supabase project, safety boundary,
-and approval of the evidence-informed v2 direction. Codex translated those
+approval of the evidence-informed direction, and the decision to replace the
+technical mode picker with a warm picture-led practice. Codex translated those
 decisions into the schema, exact tool implementation, structured GPT-5.6 flow,
-widget, safety controls, tests, migration, deployment, and timestamped audit
-trail. The original prompt SHA-256 remains
+guided journey, asset integration, safety controls, tests, migration,
+deployment, and timestamped audit trail. GPT-5.6 separately orchestrated the
+original illustration package described above. The original prompt SHA-256 remains
 `78cf0d7a3f6c9a149a3e91e0105656ea5b19cec7d69ced2dcd43e9c320745f51`.
 
 ### Required Codex feedback record
@@ -274,6 +297,9 @@ trail. The original prompt SHA-256 remains
   system.
 - In-memory conversation history is demo-scale and can be lost on a cold
   serverless instance; bounded profile/lock state is durable in Supabase.
+- The illustration package passed automated and contact-sheet review, but its
+  provenance report correctly requires human child-development, accessibility,
+  safeguarding, cultural, and licensing review before real-world use.
 - A real product needs co-design with children, caregivers, educators,
   accessibility specialists, safeguarding professionals, and independent
   clinical/privacy/legal review.

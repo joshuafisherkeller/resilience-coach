@@ -27,6 +27,16 @@ const supportPreferenceSchema = z.enum([
   "grown-up help",
 ]);
 
+const guidedScenarioSchema = z.enum(["sharing", "mistakes", "change"]);
+const guidedStepSchema = z.enum([
+  "start",
+  "notice",
+  "choose",
+  "try",
+  "check",
+  "plan",
+]);
+
 export type SupportPreference = z.infer<typeof supportPreferenceSchema>;
 
 export function supportModeInstruction(
@@ -57,6 +67,8 @@ const coachRequestSchema = z.object({
   support_preference: supportPreferenceSchema
     .optional()
     .default("two clear choices"),
+  scenario: guidedScenarioSchema.optional(),
+  experience_step: guidedStepSchema.optional(),
 });
 
 export type CoachRequest = z.input<typeof coachRequestSchema>;
@@ -421,7 +433,10 @@ export class ResilienceCoach {
     const profileContext = session.profileLoadedByModel
       ? `The active synthetic profile was loaded at session start. Starter contexts: ${session.profile.recurring_struggles.join(", ") || "none"}. Previously helpful grounding strategy: ${session.profile.preferred_grounding_strategy ?? "none"}. Skills practiced: ${session.profile.practiced_strategies.join(", ") || "none yet"}. Last next-time plan: ${session.profile.last_next_time_plan ?? "none yet"}. Do not announce this memory or repeat the profile ID to the child.`
       : `The active synthetic child_id is ${session.childId}. Call get_child_profile before coaching. Server-side bounded practice memory: skills practiced ${session.profile.practiced_strategies.join(", ") || "none yet"}; support preference ${session.profile.support_preference ?? "none yet"}; last next-time plan ${session.profile.last_next_time_plan ?? "none yet"}. Do not repeat the profile ID or announce this memory to the child.`;
-    const turnContext = `This is child turn ${session.turnCount} of at most ${MAX_CHILD_TURNS}. The child's selected support preference is ${request.support_preference}. ${supportModeInstruction(request.support_preference)} ${shouldEnd ? "Close the practice now, make one short if-then next-time plan, call update_child_profile, and return a warm ending with no choices." : "Continue one step of Notice, Name, Choose, Try, Check, Switch or Share. Offer UI choices when a choice would help, following the selected support-mode contract."}`;
+    const guidedContext = request.experience_step
+      ? `The child and grown-up are using the authored illustrated ${request.scenario ?? "ordinary setback"} journey. The current interface step is ${request.experience_step}. The interface already owns the next question and its literal picture choices. Return an empty choices array. Use one or two short sentences to acknowledge what they selected and prepare them for the next step without introducing a new task or asking an unrelated question.`
+      : "";
+    const turnContext = `This is child turn ${session.turnCount} of at most ${MAX_CHILD_TURNS}. The child's selected support preference is ${request.support_preference}. ${supportModeInstruction(request.support_preference)} ${guidedContext} ${shouldEnd ? "Close the practice now, make one short if-then next-time plan, call update_child_profile, and return a warm ending with no choices." : request.experience_step ? "Keep the feedback warm, concrete, and process-focused. Do not promise that the feeling disappears or that another person cooperates." : "Continue one step of Notice, Name, Choose, Try, Check, Switch or Share. Offer UI choices when a choice would help, following the selected support-mode contract."}`;
 
     const input: Responses.ResponseInputItem[] = [
       { role: "developer", content: `${profileContext}\n${turnContext}` },
